@@ -1,5 +1,9 @@
-from Sphere import *
-from Image import *
+import shapes
+import pygame
+from pygame.locals import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
 
 def init_main():
     "Initiate pygame, initiate OpenGL, create a window, setup OpenGL"
@@ -29,7 +33,7 @@ def init_main():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-def Check_Clear():
+def check_clear():
     """Clear the window, check if user has closed the window or pressed escape,
     if so, return 0"""
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
@@ -39,32 +43,24 @@ def Check_Clear():
                 return False
     return True
 
-def createsphere():
-    "Compile the drawing of a sphere for faster rendering"
-    glColor3f(0.5, 1, 0)  #It won't change color...
-    spheredisplay = glGenLists(1)
-    glNewList(spheredisplay, GL_COMPILE)
-    glutSolidSphere(1, 20, 20)
-    glEndList()
-    return spheredisplay
-
 # Begin main routine
 init_main()
 # Create a Clock object to maintain framerate
 clock = pygame.time.Clock()
-displayListIndex = createsphere()
-sphere = Sphere(displayListIndex)
+# Every shape object now creates itself in the OpenGL 3D plane
+sphere = shapes.Sphere()
 
 run = True
 while run:
 
-    run = Check_Clear()
+    run = check_clear()
     glLoadIdentity()
     gluLookAt(0, 0, 3, 
             0, 0 ,0,
             0, 1, 0)
 
-    sphere.update()
+    sphere.move()
+    sphere.draw()
     pygame.display.flip()
 
     clock.tick(60)
