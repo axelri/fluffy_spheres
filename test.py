@@ -41,7 +41,7 @@ def Check_Clear():
 
 def createsphere():
     "Compile the drawing of a sphere for faster rendering"
-    glColor3f(1, 1, 0)  #It won't change color...
+    glColor3f(0.5, 1, 0)  #It won't change color...
     spheredisplay = glGenLists(1)
     glNewList(spheredisplay, GL_COMPILE)
     glutSolidSphere(1, 20, 20)
