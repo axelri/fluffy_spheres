@@ -18,5 +18,5 @@ These libraries are also required:
 * UI design
 * Cross-plattform font library
 
-Maybe look into alternative frameworks to GLUT, such as [GLFW](http://www.glfw.org/ "GLFW") 
-and [GLEW](http://glew.sourceforge.net/ "GLEW")
+Maybe look into alternative frameworks to GLUT, such as [freeglut](http://freeglut.sourceforge.net/ "freeglut"),
+[GLFW](http://www.glfw.org/ "GLFW") and [GLEW](http://glew.sourceforge.net/ "GLEW").
