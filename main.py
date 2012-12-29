@@ -29,7 +29,7 @@ def init_main():
     glMatrixMode(GL_PROJECTION)
 
             #For the smaller window
-    gluPerspective(45.0,640/480.0,0.1,10.0)
+    gluPerspective(45.0,640/480.0,0.1,50.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
@@ -43,26 +43,35 @@ def check_clear():
                 return False
     return True
 
-# Begin main routine
-init_main()
-# Create a Clock object to maintain framerate
-clock = pygame.time.Clock()
-# Every shape object now creates itself in the OpenGL 3D plane
-sphere = shapes.Sphere()
+def main():
+    # Begin main routine
+    init_main()
+    # Create a Clock object to maintain framerate
+    clock = pygame.time.Clock()
+    # Every shape object now creates itself in the OpenGL 3D plane
+    sphere = shapes.Sphere()
 
-run = True
-while run:
+    run = True
+    while run:
 
-    run = check_clear()
-    glLoadIdentity()
-    gluLookAt(0, 0, 3, 
-            0, 0 ,0,
-            0, 1, 0)
+        run = check_clear()
+        glLoadIdentity()
+        gluLookAt(0, 3, 6, 
+                0, 0 ,0,
+                0, 1, 0)
 
-    sphere.move()
-    sphere.draw()
-    pygame.display.flip()
+        sphere.move()
+        sphere.draw()
+        pygame.display.flip()
 
-    clock.tick(60)
+        clock.tick(60)
 
-pygame.quit()
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as err:
+        print err
+    finally:
+        pygame.quit()
+#main()
+#pygame.quit()
