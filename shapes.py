@@ -127,15 +127,16 @@ class Sphere(Shape):
 
         # Calculate the axis of rotation
         rot_Axis = Vector([0, 1, 0]).cross(self._velocity)
-
+#        print "Rot_Axis", rot_Axis._value
         # Project the axis of rotation on the sphere-fix coordinate system
         self._rotationAxis = rot_Axis.proj_syst(self._xAxis, self._yAxis, self._zAxis)
+#        print "RotationAxis", self._rotationAxis._value, "\n"
         #self._rotationAxis = self._yAxis.cross(newVelocity)
 
         # Update the coorinate axises        
-        dt_xAxis = self._rotationAxis.v_mult(-1.0).cross(self._xAxis)
-        dt_yAxis = self._rotationAxis.v_mult(-1.0).cross(self._yAxis)
-        dt_zAxis = self._rotationAxis.v_mult(-1.0).cross(self._zAxis)
+        dt_xAxis = self._rotationAxis.v_mult(-1.0).cross(self._xAxis).v_mult(self._rotation)
+        dt_yAxis = self._rotationAxis.v_mult(-1.0).cross(self._yAxis).v_mult(self._rotation)
+        dt_zAxis = self._rotationAxis.v_mult(-1.0).cross(self._zAxis).v_mult(self._rotation)
         
         self._xAxis = self._xAxis.v_add(dt_xAxis)
         self._yAxis = self._yAxis.v_add(dt_yAxis)
@@ -144,7 +145,11 @@ class Sphere(Shape):
         self._xAxis = self._xAxis.normalize()
         self._yAxis = self._yAxis.normalize()
         self._zAxis = self._zAxis.normalize()
-
+#        print "x-Axis", self._xAxis._value
+#        print "y-Axis", self._yAxis._value
+#        print "z-Axis", self._zAxis._value
+#        print ""
+        
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = generate_rotation_matrix(self._rotationAxis, self._rotation)
         self._rotationMatrix = matrix_mult(self._rotationMatrix, rot_matrix)
