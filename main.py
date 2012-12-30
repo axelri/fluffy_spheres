@@ -56,9 +56,19 @@ def main():
 
         run = check_clear()
         glLoadIdentity()
-        gluLookAt(0.0, 3.0, 6.0,
-                  0.0, 0.0 ,0.0,
+        
+#        xPos = sphere.get_XPos()
+#        yPos = sphere.get_YPos()
+#        zPos = sphere.get_ZPos()
+
+#        gluLookAt(xPos, yPos + 3.0, zPos + 6.0,
+#                  xPos, yPos ,zPos,
+#                  0.0, 1.0, 0.0)
+
+        gluLookAt(0.0, 3.0, 10.0,
+                  0.0, 0.0, 0.0,
                   0.0, 1.0, 0.0)
+
 
         sphere.move()
         sphere.draw()

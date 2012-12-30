@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from vector import *
 from matrix import *
+from constants import *
 from math import *
 
 class Shape(object):
@@ -35,7 +36,6 @@ class Shape(object):
     def create_and_get_GL_object(self):
         '''Compiles the drawing of a generic object for faster rendering,
         then returns the index of the OpenGL displayList'''
-        glColor3fv(self.color)
         displayListIndex = glGenLists(1)
         glNewList(displayListIndex, GL_COMPILE)
         self.draw_shape()
@@ -78,13 +78,13 @@ class Sphere(Shape):
         ''' Constructor for the Sphere class. Calls the constructor for the
         Shape class. This way the new Sphere object will hold all the
         instance variables and methods defined in the Shape class.'''
-        self.color = [0.5, 1, 0]
+        self.color = SPHERE_COLOR
         
         displayListIndex = self.create_and_get_GL_object()
         super(Sphere, self).__init__(displayListIndex)
 
         # initiliaze/set values unique to Sphere
-        self._speed = 0.05
+        self._speed = SPHERE_SPEED
 
         self._velocity = Vector([0.0, 0.0, 0.0])
 
@@ -93,19 +93,34 @@ class Sphere(Shape):
         self._rotationAxis = Vector([0.0, 0.0, 0.0])
         self._rotationMatrix = identity()
 
+        self._jumping = 0
+        self._jumpSpeed = SPHERE_JUMP_SPEED
+        self._jumpHeight = SPHERE_JUMP_HEIGHT
+
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
         name if you want to) '''
-        glutSolidSphere(1, 40, 40)             # For nicer looking sphere
-        #glutSolidSphere(1, 10, 10)              # To look at rotation
+        glColor3fv(self.color)
+        #glutSolidSphere(1, 40, 40)             # For nicer looking sphere
+        glutSolidSphere(1, 10, 10)              # To look at rotation
 
     def move(self):
         ''' Move around in 3D space using the keyboard.'''
         # TODO: Make generic and move to Shape
         keyState = pygame.key.get_pressed()
+
+        # Take input
+        
         # D positive, a negative, 0 if not pressed
         xDir = keyState[K_d] - keyState[K_a]
         zDir = keyState[K_s] - keyState[K_w]
+
+        # Commence jumping if user presses space
+        if keyState[K_SPACE]:
+            self.jump()
+
+        # Calculate new y-position in the jump
+        self.update_jump()
 
         # Compute the new position of the sphere
         xVel = xDir * self._speed
@@ -115,17 +130,33 @@ class Sphere(Shape):
 
         # Calculate the direction the sphere moves in
         self._velocity = Vector([xVel, 0.0, zVel])
-        self._rotation = self._velocity.norm()
+        self._rotation = self._velocity.norm()  # This needs to be adjusted for the radius of the
+                                                # sphere in the generic case, but right now the
+                                                # radius is 1 so we don't need to yet
         if self._rotation:
             self._velocity = self._velocity.normalize()
 
         # Calculate the axis of rotation
         self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
+                                                # The vector [0,1,0] should really be the normal
+                                                # of the surface in the contact point, but that
+                                                # can be changed later if we want to make the sphere
+                                                # roll on other surfaces than a plain floor.
         
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = generate_rotation_matrix(self._rotationAxis, self._rotation)
         self._rotationMatrix = matrix_mult(rot_matrix, self._rotationMatrix)
         
+    def jump(self):
+        if not self._jumping:
+            self._jumping = SPHERE_JUMP_TIME
+
+    def update_jump(self):
+        if self._jumping:
+            self._jumping -= 1
+            jumpTime = SPHERE_JUMP_TIME - self._jumping
+            self._yPos = (self._jumpSpeed * jumpTime - 0.005 * jumpTime**2) * self._jumpHeight/4.5
+        # The "/4.5" part is there because the maximum of the equation normally is 4.5
 
     def translate_and_rotate(self):
         glTranslate(self._xPos, self._yPos, self._zPos)
