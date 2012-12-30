@@ -17,7 +17,9 @@ These libraries are also required:
 * Level design
 * UI design
 * Cross-plattform font library
-* Make the rotation work properly
+* Make the camera follow the sphere
+* Look in different directions using mouse
+* Jump
 
 Maybe look into alternative frameworks to GLUT, such as [freeglut](http://freeglut.sourceforge.net/ "freeglut"),
 [GLFW](http://www.glfw.org/ "GLFW") and [GLEW](http://glew.sourceforge.net/ "GLEW").
