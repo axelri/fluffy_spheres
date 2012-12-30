@@ -11,22 +11,22 @@ def generate_rotation_matrix(vector, angle):
     else:
         v = v._value
     
-    rotation_matrix = [v[0] * v[0] * (1 - cos(angle)) + cos(angle),
-                       v[1] * v[0] * (1 - cos(angle)) + v[2] * sin(angle),
-                       v[0] * v[2] * (1 - cos(angle)) - v[1] * sin(angle),
-                       0,
-                       v[0] * v[1] * (1 - cos(angle)) - v[2] * sin(angle),
-                       v[1] * v[1] * (1 - cos(angle)) + cos(angle),
-                       v[1] * v[2] * (1 - cos(angle)) + v[0] * sin(angle),
-                       0,
-                       v[0] * v[2] * (1 - cos(angle)) + v[1] * sin(angle),
-                       v[1] * v[2] * (1 - cos(angle)) - v[0] * sin(angle),
-                       v[2] * v[2] * (1 - cos(angle)) + cos(angle),
-                       0,
-                       0,
-                       0,
-                       0,
-                       1]
+    rotation_matrix = [v[0] * v[0] * (1.0 - cos(angle)) + cos(angle),
+                       v[1] * v[0] * (1.0 - cos(angle)) + v[2] * sin(angle),
+                       v[0] * v[2] * (1.0 - cos(angle)) - v[1] * sin(angle),
+                       0.0,
+                       v[0] * v[1] * (1.0 - cos(angle)) - v[2] * sin(angle),
+                       v[1] * v[1] * (1.0 - cos(angle)) + cos(angle),
+                       v[1] * v[2] * (1.0 - cos(angle)) + v[0] * sin(angle),
+                       0.0,
+                       v[0] * v[2] * (1.0 - cos(angle)) + v[1] * sin(angle),
+                       v[1] * v[2] * (1.0 - cos(angle)) - v[0] * sin(angle),
+                       v[2] * v[2] * (1.0 - cos(angle)) + cos(angle),
+                       0.0,
+                       0.0,
+                       0.0,
+                       0.0,
+                       1.0]
     return rotation_matrix
 
 def matrix_mult(a, b):
@@ -42,7 +42,7 @@ def matrix_mult(a, b):
             
 def identity():
     """ Returns an identity matrix in OpenGL standard. """
-    return [1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1]
+    return [1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0]

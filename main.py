@@ -23,13 +23,13 @@ def init_main():
     glDisable(GL_CULL_FACE)
     glColorMaterial(GL_FRONT, GL_DIFFUSE)
 
-    glClearColor(0.1, 0, 0.1, 0)
+    glClearColor(0.1, 0.0, 0.1, 0.0)
     
             #Setup the camera
     glMatrixMode(GL_PROJECTION)
 
             #For the smaller window
-    gluPerspective(45.0,640/480.0,0.1,50.0)
+    gluPerspective(45.0, 640/480.0, 0.1, 50.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
@@ -56,9 +56,9 @@ def main():
 
         run = check_clear()
         glLoadIdentity()
-        gluLookAt(0, 3, 6, 
-                0, 0 ,0,
-                0, 1, 0)
+        gluLookAt(0.0, 3.0, 6.0,
+                  0.0, 0.0 ,0.0,
+                  0.0, 1.0, 0.0)
 
         sphere.move()
         sphere.draw()

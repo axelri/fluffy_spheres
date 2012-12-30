@@ -86,10 +86,6 @@ class Sphere(Shape):
         # initiliaze/set values unique to Sphere
         self._speed = 0.05
 
-        self._xAxis = Vector([1.0, 0.0, 0.0])
-        self._yAxis = Vector([0.0, 1.0, 0.0])
-        self._zAxis = Vector([0.0, 0.0, 1.0])
-
         self._velocity = Vector([0.0, 0.0, 0.0])
 
         # Stores the rotation matrix of the sphere, initiates it as identity
@@ -100,7 +96,9 @@ class Sphere(Shape):
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
         name if you want to) '''
-        glutSolidSphere(1, 20, 20)
+        glutSolidSphere(1, 40, 40)             # For nicer looking sphere
+        #glutSolidSphere(1, 10, 10)              # To look at rotation
+
     def move(self):
         ''' Move around in 3D space using the keyboard.'''
         # TODO: Make generic and move to Shape
@@ -121,38 +119,13 @@ class Sphere(Shape):
         if self._rotation:
             self._velocity = self._velocity.normalize()
 
-        # Calculate the direction of the movement relative to the sphere-fix coordinate system
-        newVelocity = self._velocity.proj_syst(self._xAxis, self._yAxis, self._zAxis)
-        newVelocity = newVelocity.v_mult(self._rotation)
-
         # Calculate the axis of rotation
-        rot_Axis = Vector([0, 1, 0]).cross(self._velocity)
-#        print "Rot_Axis", rot_Axis._value
-        # Project the axis of rotation on the sphere-fix coordinate system
-        self._rotationAxis = rot_Axis.proj_syst(self._xAxis, self._yAxis, self._zAxis)
-#        print "RotationAxis", self._rotationAxis._value, "\n"
-        #self._rotationAxis = self._yAxis.cross(newVelocity)
-
-        # Update the coorinate axises        
-        dt_xAxis = self._rotationAxis.v_mult(-1.0).cross(self._xAxis).v_mult(self._rotation)
-        dt_yAxis = self._rotationAxis.v_mult(-1.0).cross(self._yAxis).v_mult(self._rotation)
-        dt_zAxis = self._rotationAxis.v_mult(-1.0).cross(self._zAxis).v_mult(self._rotation)
-        
-        self._xAxis = self._xAxis.v_add(dt_xAxis)
-        self._yAxis = self._yAxis.v_add(dt_yAxis)
-        self._zAxis = self._zAxis.v_add(dt_zAxis)
-
-        self._xAxis = self._xAxis.normalize()
-        self._yAxis = self._yAxis.normalize()
-        self._zAxis = self._zAxis.normalize()
-#        print "x-Axis", self._xAxis._value
-#        print "y-Axis", self._yAxis._value
-#        print "z-Axis", self._zAxis._value
-#        print ""
+        self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
         
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = generate_rotation_matrix(self._rotationAxis, self._rotation)
-        self._rotationMatrix = matrix_mult(self._rotationMatrix, rot_matrix)
+        self._rotationMatrix = matrix_mult(rot_matrix, self._rotationMatrix)
+        
 
     def translate_and_rotate(self):
         glTranslate(self._xPos, self._yPos, self._zPos)
