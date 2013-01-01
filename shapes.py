@@ -3,9 +3,11 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from vector import *
-from matrix import *
-from constants import *
+
+from vector import * # OK to import with * since it only contains one class def
+from matrix import * # TODO: Maybe import instead and use matrix.<some> 
+# since we're using as a singleton ('loose functions')
+import constants # TODO: Same as above
 from math import *
 
 class Shape(object):
@@ -78,24 +80,26 @@ class Sphere(Shape):
         ''' Constructor for the Sphere class. Calls the constructor for the
         Shape class. This way the new Sphere object will hold all the
         instance variables and methods defined in the Shape class.'''
-        self.color = SPHERE_COLOR
+        self.color = constants.SPHERE_COLOR
         
         displayListIndex = self.create_and_get_GL_object()
         super(Sphere, self).__init__(displayListIndex)
 
         # initiliaze/set values unique to Sphere
-        self._speed = SPHERE_SPEED
+        self._speed = constants.SPHERE_SPEED
 
         self._velocity = Vector([0.0, 0.0, 0.0])
 
         # Stores the rotation matrix of the sphere, initiates it as identity
+        # TODO: refactor to Shape
         self._rotation = 0.0
         self._rotationAxis = Vector([0.0, 0.0, 0.0])
         self._rotationMatrix = identity()
 
+        # TODO: refactor to Shape
         self._jumping = 0
-        self._jumpSpeed = SPHERE_JUMP_SPEED
-        self._jumpHeight = SPHERE_JUMP_HEIGHT
+        self._jumpSpeed = constants.SPHERE_JUMP_SPEED
+        self._jumpHeight = constants.SPHERE_JUMP_HEIGHT
 
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
@@ -149,12 +153,12 @@ class Sphere(Shape):
         
     def jump(self):
         if not self._jumping:
-            self._jumping = SPHERE_JUMP_TIME
+            self._jumping = constants.SPHERE_JUMP_TIME
 
     def update_jump(self):
         if self._jumping:
             self._jumping -= 1
-            jumpTime = SPHERE_JUMP_TIME - self._jumping
+            jumpTime = constants.SPHERE_JUMP_TIME - self._jumping
             self._yPos = (self._jumpSpeed * jumpTime - 0.005 * jumpTime**2) * self._jumpHeight/4.5
         # The "/4.5" part is there because the maximum of the equation normally is 4.5
 
