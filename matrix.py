@@ -1,8 +1,5 @@
-import vector
 from math import *
-# TODO: Why import * instead of just import vector?
-# 'vector' seems to only contain a class def, not something module related
-# TODO: Probably easier with numPy instead of defining own functions
+# NOTE: Probably easier with numPy instead of defining own functions
 
 def generate_rotation_matrix(vector, angle):
     """ Generates a rotation matrix according to OpenGL standards

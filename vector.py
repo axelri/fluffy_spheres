@@ -5,10 +5,10 @@ class Vector:
     def __init__(self, value):
         self._value = value      # A list of the values of the vector
 
-    def get_Value(self):
+    def get_value(self):
         return self._value
 
-    def set_Value(self, value):
+    def set_value(self, value):
         self._value = value
     
     def dot(self, v2):

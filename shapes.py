@@ -1,20 +1,21 @@
+from math import *
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-
-from vector import * # OK to import with * since it only contains one class def
+from vector import Vector
 import matrix 
 import constants
-from math import *
 
 class Shape(object):
     ''' Defines a generic 3D shape with suitable instance variables
     and methods. All other shapes should inherit from this.
-    Need to inherit from *object* in order to be fully usable by subclasses.'''
+    Need to inherit from *object* in order to be fully usable by subclasses.
+    Subclasses of Shape must define a method draw_shape with OpenGL
+    instructions on how to draw the particular shape in 3D space.'''
     # NOTE: Maybe named arguments is an ugly hack
-    def __init__(self, color=[0, 0, 0]):
+    def __init__(self):
         ''' Constructor for the Shape object. Takes one optional
         color argument'''
 
@@ -25,7 +26,6 @@ class Shape(object):
         self._zPos = 0
     
         self._speed = 0
-        self._color = color
         self._displayListIndex = self.create_and_get_GL_object()
 
         # Stores the rotation matrix of the shape, initiates it as identity
@@ -34,7 +34,7 @@ class Shape(object):
         self._rotationMatrix = matrix.identity()
 
         # Jumping variables
-        self._jumping = 0 # TODO: Necessary?
+        self._jumpTimeLeft = 0 # TODO: Necessary?
         self._jumpSpeed = 0
         self._jumpHeight = 0
         self._jumpTime = 0
@@ -45,7 +45,6 @@ class Shape(object):
     def draw(self):
         ''' Draws a generic shape in the 3D space.'''
         glPushMatrix()
-        self.translate_and_rotate()
         glCallList(self._displayListIndex)
         glPopMatrix()
 
@@ -63,19 +62,64 @@ class Shape(object):
         glTranslate(self._xPos, self._yPos, self._zPos)
         glMultMatrixf(self._rotationMatrix)
 
+    def move(self, directions):
+        ''' Move around in 3D space using the keyboard.
+        Takes an array containing X and Z axis directions.
+        Directions must be either 1, -1 or 0.'''
+
+        # Set directions
+        xDir = directions[0]
+        zDir = directions[1]
+
+        # Compute the new position of the sphere
+        xVel = xDir * self._speed
+        zVel = zDir * self._speed
+        self._xPos += xVel
+        self._zPos += zVel
+
+        # Calculate the direction the shape moves in
+        self._velocity = Vector([xVel, 0.0, zVel])
+        self._rotation = self._velocity.norm()  
+        # TODO: This needs to be adjusted for the radius of the
+        # sphere (shape) in the generic case, but right now the
+        # radius is 1 so we don't need to yet
+
+        if self._rotation:
+            self._velocity = self._velocity.normalize()
+
+        # Calculate the axis of rotation
+        self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
+        # The vector [0,1,0] should really be the normal
+        # of the surface in the contact point, but that
+        # can be changed later if we want to make the sphere
+        # roll on other surfaces than a plain floor.
+        
+        # Generate a rotation matrix to describe the current rotation
+        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
+        self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
+
     def jump(self):
         # TODO: func doc
-        if not self._jumping:
-            self._jumping = self._jumpTime
+        if not self._jumpTimeLeft:
+            self._jumpTimeLeft = self._jumpTime
 
     def update_jump(self):
         # TODO: func doc
         # TODO: Ball degradation, lower and lower jumps?
-        if self._jumping:
-            self._jumping -= 1
-            jumpTime = self._jumpTime - self._jumping
-            self._yPos = (self._jumpSpeed * jumpTime - 0.005 * jumpTime**2) * self._jumpHeight/4.5
-        # The "/4.5" part is there because the maximum of the equation normally is 4.5
+        if self._jumpTimeLeft:
+            self._jumpTimeLeft -= 1
+            jumpTime = self._jumpTime - self._jumpTimeLeft
+            self._yPos = (self._jumpSpeed * jumpTime - 
+                    0.005 * jumpTime**2) * self._jumpHeight/4.5
+        # The "/4.5" part is there because the maximum of 
+        # the equation normally is 4.5
+
+    def update(self):
+        ''' Updates the object coordinates and then
+        draws the object.'''
+        self.update_jump()
+        self.translate_and_rotate()
+        self.draw()
 
     # external getters and setters for
     # the instance variables.
@@ -115,13 +159,18 @@ class Shape(object):
 class Sphere(Shape):
     ''' Defines a 3D sphere. Inherits from Shape. Can move
     around in 3D space'''
-    def __init__(self):
+    def __init__(self, color=constants.SPHERE_COLOR,
+                radius=constants.SPHERE_RADIUS):
         ''' Constructor for the Sphere class. Calls the constructor for the
         Shape class. This way the new Sphere object will hold all the
         instance variables and methods defined in the Shape class.'''
-        self._color = constants.SPHERE_COLOR
+        # These variables are important to 
+        # OpenGL compilation, and must be
+        # initialized prior to calling superclass constructor
+        self._color = color
+        self._radius = radius
         
-        super(Sphere, self).__init__(self._color)
+        super(Sphere, self).__init__()
 
         # initialize/set values unique to Sphere
         self._speed = constants.SPHERE_SPEED
@@ -133,49 +182,7 @@ class Sphere(Shape):
         ''' The drawing routine for Sphere (you are welcome to change the
         name if you want to) '''
         glColor3fv(self._color)
-        #glutSolidSphere(1, 40, 40)             # For nicer looking sphere
-        glutSolidSphere(1, 10, 10)              # To look at rotation
-
-    def move(self):
-        ''' Move around in 3D space using the keyboard.'''
-        # TODO: Make generic and move to Shape
-        # TODO: Segregate actual moving from input interpretation
-        keyState = pygame.key.get_pressed()
-
-        # Take input
-        # D positive, a negative, 0 if not pressed
-        xDir = keyState[K_d] - keyState[K_a]
-        zDir = keyState[K_s] - keyState[K_w]
-
-        # Commence jumping if user presses space
-        if keyState[K_SPACE]:
-            self.jump() # update jumping "energy"
-
-        # Calculate new y-position in the jump
-        self.update_jump()
-
-        # Compute the new position of the sphere
-        xVel = xDir * self._speed
-        zVel = zDir * self._speed
-        self._xPos += xVel
-        self._zPos += zVel
-
-        # TODO: refactor to different functions
-        # Calculate the direction the sphere moves in
-        self._velocity = Vector([xVel, 0.0, zVel])
-        self._rotation = self._velocity.norm()  # This needs to be adjusted for the radius of the
-                                                # sphere in the generic case, but right now the
-                                                # radius is 1 so we don't need to yet
-        if self._rotation:
-            self._velocity = self._velocity.normalize()
-
-        # Calculate the axis of rotation
-        self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
-                                                # The vector [0,1,0] should really be the normal
-                                                # of the surface in the contact point, but that
-                                                # can be changed later if we want to make the sphere
-                                                # roll on other surfaces than a plain floor.
-        
-        # Generate a rotation matrix to describe the current rotation
-        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
-        self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
+        # self._color/self._radius defined only in subclass
+        # since draw_shape is unqiue to the subclass
+        #glutSolidSphere(self._radius, 40, 40)             # For nicer looking sphere
+        glutSolidSphere(self._radius, 10, 10)   # To look at rotation
