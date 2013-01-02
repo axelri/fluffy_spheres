@@ -8,13 +8,15 @@ from vector import Vector
 import matrix 
 import constants
 
+# PLEASE add new generic object functionality to the Shape class,
+# instead of adding it to one of the subclasses
+
 class Shape(object):
     ''' Defines a generic 3D shape with suitable instance variables
     and methods. All other shapes should inherit from this.
     Need to inherit from *object* in order to be fully usable by subclasses.
     Subclasses of Shape must define a method draw_shape with OpenGL
     instructions on how to draw the particular shape in 3D space.'''
-    # NOTE: Maybe named arguments is an ugly hack
     def __init__(self):
         ''' Constructor for the Shape object. Takes one optional
         color argument'''
@@ -45,6 +47,7 @@ class Shape(object):
     def draw(self):
         ''' Draws a generic shape in the 3D space.'''
         glPushMatrix()
+        self.translate_and_rotate()
         glCallList(self._displayListIndex)
         glPopMatrix()
 
@@ -118,7 +121,6 @@ class Shape(object):
         ''' Updates the object coordinates and then
         draws the object.'''
         self.update_jump()
-        self.translate_and_rotate()
         self.draw()
 
     # external getters and setters for
@@ -184,5 +186,5 @@ class Sphere(Shape):
         glColor3fv(self._color)
         # self._color/self._radius defined only in subclass
         # since draw_shape is unqiue to the subclass
-        #glutSolidSphere(self._radius, 40, 40)             # For nicer looking sphere
+        #glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         glutSolidSphere(self._radius, 10, 10)   # To look at rotation

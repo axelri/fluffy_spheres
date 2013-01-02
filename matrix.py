@@ -2,9 +2,9 @@ from math import *
 # NOTE: Probably easier with numPy instead of defining own functions
 
 def generate_rotation_matrix(vector, angle):
-    """ Generates a rotation matrix according to OpenGL standards
+    ''' Generates a rotation matrix according to OpenGL standards
         with a rotation of angle (in radians) and
-        the vector as rotation axis """
+        the vector as rotation axis '''
     v = vector.normalize()
 
     if v == None:
@@ -31,10 +31,10 @@ def generate_rotation_matrix(vector, angle):
     return rotation_matrix
 
 def matrix_mult(a, b):
-    """ Multiplies the matrices a and b as (a * b).
+    ''' Multiplies the matrices a and b as (a * b).
         The matrices are given in OpenGL standard, that is,
         a 4x4 matrix written in column-major order, represented
-        as a list. """
+        as a list. '''
     out = [0]*16  
     for i in range(4):
         for k in range(4):
@@ -42,7 +42,7 @@ def matrix_mult(a, b):
     return out
             
 def identity():
-    """ Returns an identity matrix in OpenGL standard. """
+    ''' Returns an identity matrix in OpenGL standard. '''
     return [1.0, 0.0, 0.0, 0.0,
             0.0, 1.0, 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,

@@ -3,13 +3,14 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import constants
+from constants import *
+from player import Player
 import shapes
 
-def init_main():
-    "Initiate pygame, initiate OpenGL, create a window, setup OpenGL"
+def init_window():
+    ''' Initiate pygame, initiate OpenGL, create a window, setup OpenGL'''
     pygame.init()
-    pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT), 
+    pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 
             OPENGL|DOUBLEBUF)
     pygame.display.set_caption("Fluffy spheres") 
 
@@ -35,12 +36,7 @@ def init_main():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-def check_user_action(playableObj, 
-            moveLeft=constants.DEFAULT_MOVE_LEFT_BUTTON,
-            moveRight=constants.DEFAULT_MOVE_RIGHT_BUTTON,
-            moveForward=constants.DEFAULT_MOVE_FORWARD_BUTTON,
-            moveBackward=constants.DEFAULT_MOVE_BACKWARD_BUTTON,
-            jump=constants.DEFAULT_JUMP_BUTTON):
+def check_user_action(players):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -53,24 +49,27 @@ def check_user_action(playableObj,
 
     # Check for movements
     keyState = pygame.key.get_pressed()
-    if keyState[moveLeft] != 0 or \
-            keyState[moveRight] != 0 or \
-            keyState[moveForward] != 0 or \
-            keyState[moveBackward] != 0:
-        # Get the directions and move the object
-        directions = get_user_directions(moveLeft, moveRight,
-                moveForward, moveBackward, keyState)
-        playableObj.move(directions)
+    for player in players:
+        for key in player.get_move_keys():
+            if keyState[key] != 0:
+                # Get the directions and move the object
+                directions = get_user_directions(player.get_move_left_key(),
+                        player.get_move_right_key(), 
+                        player.get_move_forward_key(),
+                        player.get_move_backward_key(), keyState)
+                player.get_shape().move(directions)
+                break # break out of inner loop; only move once
 
-    # Check for jumping
-    if keyState[jump]:
-        playableObj.jump()
+    for player in players:
+        # Check for jumping
+        if keyState[player.get_jump_key()]:
+            player.get_shape().jump()
 
     return True
 
 def get_user_directions(moveLeft, moveRight,
             moveForward, moveBackward, keyState):
-    ''' Gets input from the user. Takes 4 button parameters
+    ''' Gets input from the user. Takes 4 KEY parameters
     and a map of the current keyboard key state. Returns an array 
     of directions on the X and Z axis. The directions can be
     1, -1 or 0 '''
@@ -80,14 +79,24 @@ def get_user_directions(moveLeft, moveRight,
     return [xDir, zDir]
 
 def main():
-    # Begin main routine
-    init_main()
+    ''' Main routine of the game.'''
+    # Initialize OpenGL and pygame related objects
+    init_window()
     # Create a Clock object to maintain framerate
     clock = pygame.time.Clock()
-    # Initialize list of all the objects in the current 3D space
-    objects = []
-    sphere = shapes.Sphere()
-    objects.append(sphere)
+    # Initialize list of all the objects associated with a player
+    playableShapes = []
+    playableShapes.append(shapes.Sphere())
+    playableShapes.append(shapes.Sphere())
+    # List of all the players currently playing
+    players = []
+    player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
+            DEFAULT_MOVE_RIGHT_KEY, DEFAULT_MOVE_FORWARD_KEY,
+            DEFAULT_MOVE_BACKWARD_KEY, DEFAULT_JUMP_KEY)
+    players.append(player)
+    player2 = Player("The other Player", playableShapes[1], K_j, K_l,
+            K_i, K_k, K_o)
+    players.append(player2)
 
     run = True
     while run:
@@ -109,14 +118,14 @@ def main():
                   0.0, 1.0, 0.0)
 
 
-        run = check_user_action(sphere)
+        run = check_user_action(players)
         # update the object, translate
         # and then draw it
-        for obj in objects:
-            obj.update()
+        for shape in playableShapes:
+            shape.update()
         pygame.display.flip()
 
-        clock.tick(constants.WINDOW_FPS) # Sync with 60 FPS
+        clock.tick(WINDOW_FPS) # Sync with 60 FPS
 
 if __name__ == '__main__':
     try:
