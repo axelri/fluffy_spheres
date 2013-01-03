@@ -40,7 +40,7 @@ class Shape(object):
         self._rotationMatrix = matrix.identity()
 
         # Jumping variables
-        self._jumpTimeLeft = 0 # TODO: Necessary?
+        self._jumping = False # TODO: Necessary?
         self._jumpSpeed = 0
         self._jumpHeight = 0
         self._jumpTime = 0
@@ -86,10 +86,7 @@ class Shape(object):
 
         # Calculate the direction the shape moves in
         self._velocity = Vector([xVel, 0.0, zVel])
-        self._rotation = self._velocity.norm()  
-        # TODO: This needs to be adjusted for the radius of the
-        # sphere (shape) in the generic case, but right now the
-        # radius is 1 so we don't need to yet
+        self._rotation = self._velocity.norm() / self._radius
 
         if self._rotation:
             self._velocity = self._velocity.normalize()
@@ -106,18 +103,21 @@ class Shape(object):
         self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
 
     def jump(self):
-        # TODO: func doc
-        if not self._jumpTimeLeft:
-            self._jumpTimeLeft = self._jumpTime
+        ''' Is called to make the shape jump, sets self._jumping to True '''
+        self._jumping = True
 
     def update_jump(self):
-        # TODO: func doc
+        ''' Checks if the shape should jump, if so makes it continue along the
+        jumping parabola '''
         # TODO: Ball degradation, lower and lower jumps?
-        if self._jumpTimeLeft:
-            self._jumpTimeLeft -= 1
-            jumpTime = self._jumpTime - self._jumpTimeLeft
-            self._yPos = (self._jumpSpeed * jumpTime - 
-                    0.005 * jumpTime**2) * self._jumpHeight/4.5
+
+        if self._jumping and (self._jumpTime < constants.SPHERE_JUMP_TIME):
+            self._jumpTime += 1
+            self._yPos = (self._jumpSpeed * self._jumpTime - 
+                    0.005 * self._jumpTime**2) * self._jumpHeight/4.5
+            if self._jumpTime == 60:
+                self._jumpTime = 0
+                self._jumping = False
         # The "/4.5" part is there because the maximum of 
         # the equation normally is 4.5
 
@@ -182,7 +182,7 @@ class Sphere(Shape):
         self._speed = constants.SPHERE_SPEED
         self._jumpSpeed = constants.SPHERE_JUMP_SPEED
         self._jumpHeight = constants.SPHERE_JUMP_HEIGHT
-        self._jumpTime = constants.SPHERE_JUMP_TIME
+        self._jumpTime = 0
 
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
