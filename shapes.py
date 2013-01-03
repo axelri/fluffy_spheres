@@ -37,7 +37,6 @@ class Shape(object):
         # Jumping variables
         self._jumping = False
         self._jumpSpeed = 0
-        self._jumpHeight = 0
         self._jumpTime = 0
 
         # Direction and speed
@@ -136,12 +135,12 @@ class Shape(object):
         self._color = color
 
     def get_jump_height(self):
-        return (self._jumpSpeed * self._maxJumpTime / 2 - \
+        return (self._jumpSpeed * self._maxJumpTime / 2 -
                 constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) / 1000.0
 
     def set_jump_height(self, height):
-        self._jumpSpeed = (height * 2000.0 + constants.GRAVITY * (self._maxJumpTime / 2)**2)\
-                           / self._maxJumpTime
+        self._jumpSpeed = (height * 2000.0 + constants.GRAVITY * 
+                (self._maxJumpTime / 2)**2) / self._maxJumpTime
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
 class RotatingShape(Shape):
@@ -215,7 +214,6 @@ class Sphere(RotatingShape):
         self._speed = constants.SPHERE_SPEED
         self._jumpSpeed = constants.SPHERE_JUMP_SPEED
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
-        self._jumpTime = 0
 
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
@@ -237,8 +235,7 @@ class Cube(Shape):
 
         self._speed = constants.CUBE_SPEED
         self._jumpSpeed = constants.CUBE_JUMP_SPEED
-        self._jumpHeight = constants.CUBE_JUMP_HEIGHT
-        self._jumpTime = 0
+        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''
