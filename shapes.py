@@ -77,6 +77,20 @@ class Shape(object):
         self._xPos += xVel
         self._zPos += zVel
 
+    def try_move(self, directions):
+        ''' Returns the new coordinates, should the
+        object move in this direction.'''
+
+        # Set directions
+        xDir = directions[0]
+        zDir = directions[1]
+
+        # Compute the new position of the sphere
+        xVel = xDir * self._speed
+        zVel = zDir * self._speed
+        
+        return [self._xPos + xVel, self._yPos, self._zPos + zVel]
+
     def jump(self):
         ''' Is called to make the shape jump, sets self._jumping to True '''
         self._jumping = True
@@ -88,7 +102,7 @@ class Shape(object):
         if self._jumping and (self._jumpTime < self._maxJumpTime):
             self._jumpTime += 1
             self._yPos = (self._jumpSpeed * self._jumpTime - \
-                          constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
+                    constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
             if self._jumpTime >= self._maxJumpTime:
                 self._jumpTime = 0
                 self._jumping = False
@@ -127,6 +141,9 @@ class Shape(object):
 
     def set_speed(self, speed):
         self._speed = speed
+
+    def get_position(self):
+        return [self._xPos, self._yPos, self._zPos]
 
     def get_color(self):
         return self._color
@@ -185,8 +202,10 @@ class RotatingShape(Shape):
         # roll on other surfaces than a plain floor.
         
         # Generate a rotation matrix to describe the current rotation
-        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
-        self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
+        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis,
+                self._rotation)
+        self._rotationMatrix = matrix.matrix_mult(rot_matrix,
+                self._rotationMatrix)
 
     def translate_and_rotate(self):
         # TODO: func doc
@@ -224,6 +243,14 @@ class Sphere(RotatingShape):
         #glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         glutSolidSphere(self._radius, 10, 10)   # To look at rotation
 
+    def get_border_distance(self):
+        ''' Assuming that the position of the object is at the
+        the center, get the distance from the center to the object's
+        border. Only works for shapes whose borders are all at the same
+        distance from the center.'''
+
+        return float(self._radius)
+
 class Cube(Shape):
     ''' Defines a 3D cube. Can move around (glide) in 3D space.'''
     def __init__(self, color=constants.CUBE_COLOR,
@@ -241,3 +268,11 @@ class Cube(Shape):
         ''' The drawing routine for Cube. '''
         glColor3fv(self._color)
         glutSolidCube(self._side)
+
+    def get_border_distance(self):
+        ''' Assuming that the position of the object is at the
+        the center, get the distance from the center to the object's
+        border. Only works for shapes whose borders are all at the same
+        distance from the center.'''
+
+        return self._side / 2.0

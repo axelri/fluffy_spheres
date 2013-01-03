@@ -7,6 +7,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from constants import *
 from player import Player
+from gamespace import GameSpace
 import shapes
 
 def init_window():
@@ -38,7 +39,7 @@ def init_window():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-def check_user_action(players):
+def check_user_action(players, gameSpace):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -59,8 +60,9 @@ def check_user_action(players):
                         player.get_move_right_key(), 
                         player.get_move_forward_key(),
                         player.get_move_backward_key(), keyState)
-                player.get_shape().move(directions)
-                break # break out of inner loop; only move once
+                if gameSpace.is_valid_move(player.get_shape(), directions):
+                    player.get_shape().move(directions)
+                    break # break out of inner loop; only move once
 
     for player in players:
         # Check for jumping
@@ -82,6 +84,7 @@ def get_user_directions(moveLeft, moveRight,
 
 def main():
     ''' Main routine of the game.'''
+    # TODO: Make some kind of initializing methods
     # Initialize OpenGL and pygame related objects
     init_window()
     # Create a Clock object to maintain framerate
@@ -90,6 +93,8 @@ def main():
     playableShapes = []
     playableShapes.append(shapes.Sphere())
     playableShapes.append(shapes.Cube())
+    playableShapes[0].set_xPos(-2)
+    playableShapes[1].set_xPos(2)
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
@@ -99,6 +104,7 @@ def main():
     player2 = Player("The other Player", playableShapes[1], K_j, K_l,
             K_i, K_k, K_o)
     players.append(player2)
+    gameSpace = GameSpace(playableShapes)
 
     run = True
     while run:
@@ -119,7 +125,7 @@ def main():
                   0.0, 1.0, 0.0)
 
 
-        run = check_user_action(players)
+        run = check_user_action(players, gameSpace)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
