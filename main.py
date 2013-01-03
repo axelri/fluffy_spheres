@@ -34,7 +34,7 @@ def init_window():
     glMatrixMode(GL_PROJECTION)
 
     #For the smaller window
-    gluPerspective(45.0, 640/480.0, 0.1, 50.0)
+    gluPerspective(45.0, float(WINDOW_WIDTH)/float(WINDOW_HEIGHT), 0.1, 50.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
@@ -89,7 +89,7 @@ def main():
     # Initialize list of all the objects associated with a player
     playableShapes = []
     playableShapes.append(shapes.Sphere())
-    playableShapes.append(shapes.Sphere())
+    playableShapes.append(shapes.Cube())
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 

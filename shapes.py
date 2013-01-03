@@ -34,11 +34,6 @@ class Shape(object):
         self._speed = 0
         self._displayListIndex = self.create_and_get_GL_object()
 
-        # Stores the rotation matrix of the shape, initiates it as identity
-        self._rotation = 0.0
-        self._rotationAxis = Vector([0.0, 0.0, 0.0])
-        self._rotationMatrix = matrix.identity()
-
         # Jumping variables
         self._jumping = False # TODO: Necessary?
         self._jumpSpeed = 0
@@ -67,7 +62,6 @@ class Shape(object):
     def translate_and_rotate(self):
         # TODO: func doc
         glTranslate(self._xPos, self._yPos, self._zPos)
-        glMultMatrixf(self._rotationMatrix)
 
     def move(self, directions):
         ''' Move around in 3D space using the keyboard.
@@ -83,24 +77,6 @@ class Shape(object):
         zVel = zDir * self._speed
         self._xPos += xVel
         self._zPos += zVel
-
-        # Calculate the direction the shape moves in
-        self._velocity = Vector([xVel, 0.0, zVel])
-        self._rotation = self._velocity.norm() / self._radius
-
-        if self._rotation:
-            self._velocity = self._velocity.normalize()
-
-        # Calculate the axis of rotation
-        self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
-        # The vector [0,1,0] should really be the normal
-        # of the surface in the contact point, but that
-        # can be changed later if we want to make the sphere
-        # roll on other surfaces than a plain floor.
-        
-        # Generate a rotation matrix to describe the current rotation
-        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
-        self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
 
     def jump(self):
         ''' Is called to make the shape jump, sets self._jumping to True '''
@@ -162,9 +138,60 @@ class Shape(object):
     def set_color(self, color):
         self._color = color
 
-class Sphere(Shape):
-    ''' Defines a 3D sphere. Inherits from Shape. Can move
-    around in 3D space'''
+class RotatingShape(Shape):
+    ''' Defines a Shape that rotates while it moves.'''
+    def __init__(self):
+        # Stores the rotation matrix of the shape, initiates it as identity
+        self._rotation = 0.0
+        self._rotationAxis = Vector([0.0, 0.0, 0.0])
+        self._rotationMatrix = matrix.identity()
+
+        super(RotatingShape, self).__init__()
+
+    def move(self, directions):
+        ''' Move around in 3D space using the keyboard.
+        Takes an array containing X and Z axis directions.
+        Directions must be either 1, -1 or 0.'''
+
+        # TODO: should probably use super instead, but
+        # the local variables make it hard.
+        # Set directions
+        xDir = directions[0]
+        zDir = directions[1]
+
+        # Compute the new position of the sphere
+        xVel = xDir * self._speed
+        zVel = zDir * self._speed
+        self._xPos += xVel
+        self._zPos += zVel
+
+        # Calculate the direction the shape moves in
+        self._velocity = Vector([xVel, 0.0, zVel])
+        self._rotation = self._velocity.norm() / self._radius
+
+        if self._rotation:
+            self._velocity = self._velocity.normalize()
+
+        # Calculate the axis of rotation
+        self._rotationAxis = Vector([0, 1, 0]).cross(self._velocity)
+        # The vector [0,1,0] should really be the normal
+        # of the surface in the contact point, but that
+        # can be changed later if we want to make the sphere
+        # roll on other surfaces than a plain floor.
+        
+        # Generate a rotation matrix to describe the current rotation
+        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
+        self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
+
+    def translate_and_rotate(self):
+        # TODO: func doc
+        # translate according to parent class
+        super(RotatingShape, self).translate_and_rotate()
+        # do rotatiion unique to the subclass
+        glMultMatrixf(self._rotationMatrix)
+
+class Sphere(RotatingShape):
+    ''' Defines a 3D sphere. Can move around (roll) in 3D space'''
     def __init__(self, color=constants.SPHERE_COLOR,
                 radius=constants.SPHERE_RADIUS):
         ''' Constructor for the Sphere class. Calls the constructor for the
@@ -192,3 +219,24 @@ class Sphere(Shape):
         # since draw_shape is unqiue to the subclass
         #glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         glutSolidSphere(self._radius, 10, 10)   # To look at rotation
+
+class Cube(Shape):
+    ''' Defines a 3D cube. Can move around (glide) in 3D space.'''
+    def __init__(self, color=constants.CUBE_COLOR,
+                side=constants.CUBE_SIDE):
+        self._color = color
+        self._side = side
+
+        super(Cube, self).__init__()
+
+        self._speed = constants.CUBE_SPEED
+        self._jumpSpeed = constants.CUBE_JUMP_SPEED
+        self._jumpHeight = constants.CUBE_JUMP_HEIGHT
+        self._jumpTime = 0
+
+    def draw_shape(self):
+        ''' The drawing routine for Cube. '''
+        glColor3fv(self._color)
+        glutSolidCube(self._side)
+
+
