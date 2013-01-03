@@ -86,12 +86,11 @@ class Shape(object):
         ''' Checks if the shape should jump, if so makes it continue along the
         jumping parabola '''
         # TODO: Small bounce after jump?
-
         if self._jumping and (self._jumpTime < self._maxJumpTime):
             self._jumpTime += 1
             self._yPos = (self._jumpSpeed * self._jumpTime - \
                           constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
-            if self._jumpTime == self._maxJumpTime:
+            if self._jumpTime >= self._maxJumpTime:
                 self._jumpTime = 0
                 self._jumping = False
 
@@ -140,11 +139,10 @@ class Shape(object):
         return (self._jumpSpeed * self._maxJumpTime / 2 - \
                 constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) / 1000.0
 
-        #Seems it doesn't work as it should yet...
-#    def set_jump_height(self, height):
-#        self._jumpSpeed = (height * 1000.0 + constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2)\
-#                          * 4 / self._maxJumpTime
-#        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+    def set_jump_height(self, height):
+        self._jumpSpeed = (height * 2000.0 + constants.GRAVITY * (self._maxJumpTime / 2)**2)\
+                           / self._maxJumpTime
+        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
 class RotatingShape(Shape):
     ''' Defines a Shape that rotates while it moves.'''
@@ -246,5 +244,3 @@ class Cube(Shape):
         ''' The drawing routine for Cube. '''
         glColor3fv(self._color)
         glutSolidCube(self._side)
-
-
