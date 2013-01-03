@@ -1,11 +1,16 @@
 from pygame.locals import *
 
+### World physics constants ###
+GRAVITY = 10
+
 #### Sphere constants ####
 SPHERE_COLOR = [0.5, 1, 0]
 SPHERE_RADIUS = 1
 SPHERE_SPEED = 0.05
 SPHERE_JUMP_TIME = 60
-SPHERE_JUMP_SPEED = 0.3
+SPHERE_JUMP_SPEED = SPHERE_JUMP_TIME * GRAVITY / 2
+SPHERE_JUMP_CORRECTION = (SPHERE_JUMP_SPEED * SPHERE_JUMP_TIME / 2 - 
+                         GRAVITY / 2 * (SPHERE_JUMP_TIME / 2)**2)
 SPHERE_JUMP_HEIGHT = 3.0
 
 #### Cube constants ####

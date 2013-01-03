@@ -89,13 +89,12 @@ class Shape(object):
 
         if self._jumping and (self._jumpTime < constants.SPHERE_JUMP_TIME):
             self._jumpTime += 1
-            self._yPos = (self._jumpSpeed * self._jumpTime - 
-                    0.005 * self._jumpTime**2) * self._jumpHeight/4.5
-            if self._jumpTime == 60:
+            self._yPos = (self._jumpSpeed * self._jumpTime - \
+                          constants.GRAVITY / 2 * self._jumpTime**2) * \
+                          self._jumpHeight / constants.SPHERE_JUMP_CORRECTION
+            if self._jumpTime == constants.SPHERE_JUMP_TIME:
                 self._jumpTime = 0
                 self._jumping = False
-        # The "/4.5" part is there because the maximum of 
-        # the equation normally is 4.5
 
     def update(self):
         ''' Updates the object coordinates and then
