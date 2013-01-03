@@ -136,6 +136,16 @@ class Shape(object):
     def set_color(self, color):
         self._color = color
 
+    def get_jump_height(self):
+        return (self._jumpSpeed * self._maxJumpTime / 2 - \
+                constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) / 1000.0
+
+        #Seems it doesn't work as it should yet...
+#    def set_jump_height(self, height):
+#        self._jumpSpeed = (height * 1000.0 + constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2)\
+#                          * 4 / self._maxJumpTime
+#        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+
 class RotatingShape(Shape):
     ''' Defines a Shape that rotates while it moves.'''
     def __init__(self):
