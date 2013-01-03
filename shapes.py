@@ -35,7 +35,7 @@ class Shape(object):
         self._displayListIndex = self.create_and_get_GL_object()
 
         # Jumping variables
-        self._jumping = False # TODO: Necessary?
+        self._jumping = False
         self._jumpSpeed = 0
         self._jumpHeight = 0
         self._jumpTime = 0
@@ -85,14 +85,13 @@ class Shape(object):
     def update_jump(self):
         ''' Checks if the shape should jump, if so makes it continue along the
         jumping parabola '''
-        # TODO: Ball degradation, lower and lower jumps?
+        # TODO: Small bounce after jump?
 
-        if self._jumping and (self._jumpTime < constants.SPHERE_JUMP_TIME):
+        if self._jumping and (self._jumpTime < self._maxJumpTime):
             self._jumpTime += 1
             self._yPos = (self._jumpSpeed * self._jumpTime - \
-                          constants.GRAVITY / 2 * self._jumpTime**2) * \
-                          self._jumpHeight / constants.SPHERE_JUMP_CORRECTION
-            if self._jumpTime == constants.SPHERE_JUMP_TIME:
+                          constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
+            if self._jumpTime == self._maxJumpTime:
                 self._jumpTime = 0
                 self._jumping = False
 
@@ -207,7 +206,7 @@ class Sphere(RotatingShape):
         # initialize/set values unique to Sphere
         self._speed = constants.SPHERE_SPEED
         self._jumpSpeed = constants.SPHERE_JUMP_SPEED
-        self._jumpHeight = constants.SPHERE_JUMP_HEIGHT
+        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
         self._jumpTime = 0
 
     def draw_shape(self):
