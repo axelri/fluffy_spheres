@@ -20,6 +20,10 @@ class Shape(object):
     def __init__(self):
         ''' Constructor for the Shape object. Takes one optional
         color argument'''
+        # TODO: maybe better to make Shape an abstract base class?
+        # check out the abc module in python
+        if self.__class__.__name__ == 'Shape':
+            raise Exception('Shape must be subclassed in order to be used!')
 
         # instance variables, these should
         # only be used by the internal methods

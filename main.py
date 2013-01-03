@@ -1,3 +1,5 @@
+import traceback
+import sys
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
@@ -101,7 +103,6 @@ def main():
     run = True
     while run:
 
-        # TODO: Why this?
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         
@@ -132,5 +133,6 @@ if __name__ == '__main__':
         main()
     except Exception as err:
         print err
+        traceback.print_exc(file=sys.stdout)
     finally:
         pygame.quit()
