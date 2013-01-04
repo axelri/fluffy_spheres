@@ -39,6 +39,10 @@ class Shape(object):
         self._jumpSpeed = 0
         self._jumpTime = 0
 
+        # Falling variables
+        self._isFalling = True
+        self._fallTime = 0
+
         # Direction and speed
         self._velocity = Vector([0.0, 0.0, 0.0])
 
@@ -95,22 +99,52 @@ class Shape(object):
         ''' Is called to make the shape jump, sets self._jumping to True '''
         self._jumping = True
 
+    def is_jumping(self):
+        return self._jumping
+
     def update_jump(self):
         ''' Checks if the shape should jump, if so makes it continue along the
         jumping parabola '''
         # TODO: Small bounce after jump?
+        # TODO: Work for any starting height, not just '0'
         if self._jumping and (self._jumpTime < self._maxJumpTime):
             self._jumpTime += 1
             self._yPos = (self._jumpSpeed * self._jumpTime - \
-                    constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
+                    constants.GRAVITY / 2 * self._jumpTime**2) / \
+                    constants.SLOW_DOWN_CONSTANT
             if self._jumpTime >= self._maxJumpTime:
                 self._jumpTime = 0
                 self._jumping = False
+                self._fallTime = 0
+
+    def try_fall(self):
+        ''' Checks what the coordinates should be if the object fell.'''
+        # TODO: Update this, so that a shape never "falls through"
+        # another shape
+
+    def update_fall(self):
+        ''' Falls down one time unit.'''
+        # TODO: To fast falling, falls through the object underneath
+        if self._isFalling and not self._jumping:
+            self._fallTime += 1
+            # not entirely realistic...
+            self._yPos -= (constants.GRAVITY/2 * self._fallTime*2) / \
+                    constants.SLOW_DOWN_CONSTANT
+    
+    def reset_fall(self):
+        ''' Resets the fall time and commence falling.'''
+        self._isFalling = False
+        self._fallTime = 0
+
+    def set_fall(self):
+        ''' Commence the falling.'''
+        self._isFalling = True
 
     def update(self):
         ''' Updates the object coordinates and then
         draws the object.'''
         self.update_jump()
+        self.update_fall()
         self.draw()
 
     # external getters and setters for
@@ -151,14 +185,38 @@ class Shape(object):
     def set_color(self, color):
         self._color = color
 
-    def get_jump_height(self):
-        return (self._jumpSpeed * self._maxJumpTime / 2 -
-                constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) / 1000.0
+    def get_bottom_point_pos(self):
+        ''' Get the bottom point position for the object,
+        used for collison detection.
+        Returns and array [xPos, yPos, zPos]'''
 
-    def set_jump_height(self, height):
-        self._jumpSpeed = (height * 2000.0 + constants.GRAVITY * 
-                (self._maxJumpTime / 2)**2) / self._maxJumpTime
-        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+        return [self._xPos, self._yPos - self.get_border_distance(),
+                self._zPos]
+
+    def get_top_boundaries_x_min(self):
+        ''' Get the start X axis coordinate for the top surface.'''
+
+        return self._xPos - self.get_border_distance()
+
+    def get_top_boundaries_x_max(self):
+        ''' Get the end X axis coordinate for the top surface.'''
+
+        return self._xPos + self.get_border_distance()
+
+    def get_top_boundaries_z_min(self):
+        ''' Get the start Z axis coordinate for the top surface.'''
+
+        return self._zPos - self.get_border_distance() 
+
+    def get_top_boundaries_z_max(self):
+        ''' Get the start Z axis coordinate for the top surface.'''
+
+        return self._zPos + self.get_border_distance()
+
+    def get_top_boundaries_y_pos(self):
+        ''' Get the Y axis position of the top surface.'''
+
+        return self._yPos + self.get_border_distance()
 
 class RotatingShape(Shape):
     ''' Defines a Shape that rotates while it moves.'''
@@ -232,7 +290,9 @@ class Sphere(RotatingShape):
         # initialize/set values unique to Sphere
         self._speed = constants.SPHERE_SPEED
         self._jumpSpeed = constants.SPHERE_JUMP_SPEED
-        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+        # maxJumpTime is now the time it takes to reach the TOP of the
+        # jump, not the bottom
+        self._maxJumpTime = self._jumpSpeed / constants.GRAVITY
 
     def draw_shape(self):
         ''' The drawing routine for Sphere (you are welcome to change the
@@ -262,7 +322,7 @@ class Cube(Shape):
 
         self._speed = constants.CUBE_SPEED
         self._jumpSpeed = constants.CUBE_JUMP_SPEED
-        self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+        self._maxJumpTime = self._jumpSpeed / constants.GRAVITY
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''
@@ -277,27 +337,12 @@ class Cube(Shape):
 
         return self._side / 2.0
 
-    def get_top_boundaries_x_min(self):
-        ''' Get the start X axis coordinate for the top surface.'''
+class StationaryCube(Cube):
+    ''' Defines a stationary Cube, solid ground.'''
+    def __init__(self, color=constants.CUBE_COLOR,
+                side=constants.CUBE_SIDE):
+        
+        super(StationaryCube, self).__init__(color, side)
 
-        return self._xPos - 0.5 * self._side
-
-    def get_top_boundaries_x_max(self):
-        ''' Get the end X axis coordinate for the top surface.'''
-
-        return self._xPos + 0.5 * self._side
-
-    def get_top_boundaries_z_min(self):
-        ''' Get the start Z axis coordinate for the top surface.'''
-
-        return self._zPos - 0,5 * self._side
-
-    def get_top_boundaries_z_max(self):
-        ''' Get the start Z axis coordinate for the top surface.'''
-
-        return self._zPos + 0,5 * self._side
-
-    def get_top_boundaries_y_pos(self):
-        ''' Get the Y axis position of the top surface.'''
-
-        return self._yPos + 0.5 * self._side
+        # make sure the cube is not falling
+        self.reset_fall()

@@ -97,11 +97,9 @@ def main():
     playableShapes.append(shapes.Cube())
     playableShapes[0].set_xPos(-2)
     playableShapes[1].set_xPos(2)
-    playableShapes[0].set_yPos(SPHERE_RADIUS)
-    playableShapes[1].set_yPos(CUBE_SIDE / 2.0)
 
-    playableShapes.append(shapes.Cube(color=[1, 0, 0], side=10))
-    playableShapes[2].set_yPos(-5)
+    playableShapes.append(shapes.StationaryCube(color=[1, 0, 0], side=10))
+    playableShapes[2].set_yPos(-9)
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
@@ -136,6 +134,8 @@ def main():
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
+            if shape.__class__.__name__ != 'StationaryCube':
+                gameSpace.check_fall(shape)
             shape.update()
         pygame.display.flip()
 

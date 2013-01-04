@@ -2,6 +2,7 @@ from pygame.locals import *
 
 ### World physics constants ###
 GRAVITY = 10
+SLOW_DOWN_CONSTANT = 1000.0
 
 #### Sphere constants ####
 SPHERE_COLOR = [0.5, 1, 0]
