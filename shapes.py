@@ -99,6 +99,11 @@ class Shape(object):
         self.update_jump()
         self.draw()
 
+    def get_distace_vector(self, shape2):
+        return Vector([shape2._xPos - self._xPos,
+                       shape2._yPos - self._yPos,
+                       shape2._zPos - self._zPos])
+
     # external getters and setters for
     # the instance variables.
     # This way our API (the external calls to the object) can remain
@@ -202,9 +207,6 @@ class Sphere(RotatingShape):
         ''' Constructor for the Sphere class. Calls the constructor for the
         Shape class. This way the new Sphere object will hold all the
         instance variables and methods defined in the Shape class.'''
-        # These variables are important to 
-        # OpenGL compilation, and must be
-        # initialized prior to calling superclass constructor
         self._color = color
         self._radius = radius
         
@@ -216,13 +218,42 @@ class Sphere(RotatingShape):
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
     def draw_shape(self):
-        ''' The drawing routine for Sphere (you are welcome to change the
-        name if you want to) '''
+        ''' The drawing routine for Sphere '''
         glColor3fv(self._color)
-        # self._color/self._radius defined only in subclass
-        # since draw_shape is unqiue to the subclass
         #glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         glutSolidSphere(self._radius, 10, 10)   # To look at rotation
+
+    def collide_cube(self, cube):
+        ''' Checks if the sphere has collided with the cube.
+        If there was a collision, return the normal of the side that
+        the sphere collided with, else return False.
+        (Very specific, might need to get more general) '''
+        #TODO: Take account to collision with the corners
+        distance = self.get_distance_vector(cube)
+
+                # The sphere touches either the front or the back side of the cube
+        if abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
+           and abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius:
+                # Check which
+            if distance.dot(cube._frontNormal) < 0:
+                return cube._backNormal
+            else:
+                return cube._frontNormal
+                # The sphere touches either the left or right side of the cube
+        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 \
+           and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius:
+                # Check which
+            if distance.dot(cube._leftNormal) < 0:
+                return cube._rightNormal
+            else:
+                return cube._leftNormal
+                # The sphere doesn't touch the cube
+        else:
+            return 0
+
+    def push(self, cube):
+        ''' Makes the sphere push the cube along the coordinate axises '''
+        
 
 class Cube(Shape):
     ''' Defines a 3D cube. Can move around (glide) in 3D space.'''
@@ -236,6 +267,17 @@ class Cube(Shape):
         self._speed = constants.CUBE_SPEED
         self._jumpSpeed = constants.CUBE_JUMP_SPEED
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
+
+        # Normals to the sides of the cube, must be updated if we decide to
+        # rotate the cube, otherwise they are constant
+        self._rightNormal = Vector([1.0, 0.0, 0.0])
+        self._leftNormal = Vector([-1.0, 0.0, 0.0])
+        self._upNormal = Vector([0.0, 1.0, 0.0])
+        self._downNormal = Vector([0.0, -1.0, 0.0])
+        self._frontNormal = Vector([0.0, 0.0, 1.0])
+        self._backNormal = Vector([0.0, 0.0, -1.0])
+
+
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''

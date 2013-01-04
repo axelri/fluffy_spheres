@@ -12,7 +12,7 @@ SPHERE_JUMP_SPEED = 300
 #### Cube constants ####
 CUBE_COLOR = [0.5, 0, 1]
 CUBE_SIDE = 2
-CUBE_SPEED = 0.05
+CUBE_SPEED = 0.025
 CUBE_JUMP_SPEED = 300
 
 #### User input constants ####
