@@ -38,6 +38,7 @@ class Shape(object):
         self._jumping = False
         self._jumpSpeed = 0
         self._jumpTime = 0
+        self._startYPos = self._yPos
 
         # Falling variables
         self._isFalling = True
@@ -97,7 +98,10 @@ class Shape(object):
 
     def jump(self):
         ''' Is called to make the shape jump, sets self._jumping to True '''
-        self._jumping = True
+        # no double jump, can't jump while airbourne
+        if not self.is_jumping() and not self.is_falling():
+            self._jumping = True
+            self._startYPos = self._yPos
 
     def is_jumping(self):
         return self._jumping
@@ -109,7 +113,7 @@ class Shape(object):
         # TODO: Work for any starting height, not just '0'
         if self._jumping and (self._jumpTime < self._maxJumpTime):
             self._jumpTime += 1
-            self._yPos = (self._jumpSpeed * self._jumpTime - \
+            self._yPos = self._startYPos + (self._jumpSpeed * self._jumpTime - \
                     constants.GRAVITY / 2 * self._jumpTime**2) / \
                     constants.SLOW_DOWN_CONSTANT
             if self._jumpTime >= self._maxJumpTime:
@@ -128,17 +132,20 @@ class Shape(object):
         if self._isFalling and not self._jumping:
             self._fallTime += 1
             # not entirely realistic...
-            self._yPos -= (constants.GRAVITY/2 * self._fallTime*2) / \
+            self._yPos -= (constants.GRAVITY * self._fallTime) / \
                     constants.SLOW_DOWN_CONSTANT
     
     def reset_fall(self):
-        ''' Resets the fall time and commence falling.'''
+        ''' Resets the fall time and stop falling.'''
         self._isFalling = False
         self._fallTime = 0
 
     def set_fall(self):
         ''' Commence the falling.'''
         self._isFalling = True
+
+    def is_falling(self):
+        return self._isFalling
 
     def update(self):
         ''' Updates the object coordinates and then
