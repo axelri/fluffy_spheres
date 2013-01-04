@@ -276,3 +276,28 @@ class Cube(Shape):
         distance from the center.'''
 
         return self._side / 2.0
+
+    def get_top_boundaries_x_min(self):
+        ''' Get the start X axis coordinate for the top surface.'''
+
+        return self._xPos - 0.5 * self._side
+
+    def get_top_boundaries_x_max(self):
+        ''' Get the end X axis coordinate for the top surface.'''
+
+        return self._xPos + 0.5 * self._side
+
+    def get_top_boundaries_z_min(self):
+        ''' Get the start Z axis coordinate for the top surface.'''
+
+        return self._zPos - 0,5 * self._side
+
+    def get_top_boundaries_z_max(self):
+        ''' Get the start Z axis coordinate for the top surface.'''
+
+        return self._zPos + 0,5 * self._side
+
+    def get_top_boundaries_y_pos(self):
+        ''' Get the Y axis position of the top surface.'''
+
+        return self._yPos + 0.5 * self._side

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import traceback
 import sys
 import pygame
@@ -95,6 +97,11 @@ def main():
     playableShapes.append(shapes.Cube())
     playableShapes[0].set_xPos(-2)
     playableShapes[1].set_xPos(2)
+    playableShapes[0].set_yPos(SPHERE_RADIUS)
+    playableShapes[1].set_yPos(CUBE_SIDE / 2.0)
+
+    playableShapes.append(shapes.Cube(color=[1, 0, 0], side=10))
+    playableShapes[2].set_yPos(-5)
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
