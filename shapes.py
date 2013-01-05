@@ -37,7 +37,12 @@ class Shape(object):
         # Jumping variables
         self._jumping = False
         self._jumpSpeed = 0
-        self._jumpTime = 0
+        #self._jumpTime = 0
+
+        # Falling variables
+        #self._touchGround = True
+        self._falling = False
+        self._fallTime = 0
 
         # Direction and speed
         self._velocity = Vector([0.0, 0.0, 0.0])
@@ -76,30 +81,56 @@ class Shape(object):
         zVel = zDir * self._speed
         self._xPos += xVel
         self._zPos += zVel
+        self._velocity = Vector([xVel, 0, zVel])
+
 
     def jump(self):
-        ''' Is called to make the shape jump, sets self._jumping to True '''
+        ''' Is called to make the shape jump, sets self._jumping and
+        self._falling to True (makes the sphere fall, but with an
+        initial velocity upwards) '''
         self._jumping = True
+        self._falling = True
 
     def update_jump(self):
         ''' Checks if the shape should jump, if so makes it continue along the
         jumping parabola '''
         # TODO: Small bounce after jump?
-        if self._jumping and (self._jumpTime < self._maxJumpTime):
-            self._jumpTime += 1
-            self._yPos = (self._jumpSpeed * self._jumpTime - \
-                          constants.GRAVITY / 2 * self._jumpTime**2) / 1000.0
-            if self._jumpTime >= self._maxJumpTime:
-                self._jumpTime = 0
+        # NOTE: An involuntary "small bounce" now occurs after a jump because the sphere gets to far down.
+        # We can change this, do we want to?
+        if self._jumping:
+            self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed / 1000.0, 0]))
+
+    def fall(self):
+        ''' Makes the shape fall. '''
+        self._falling = True
+
+    def update_fall(self):
+        ''' Checks if the shape should fall, if so makes it fall. If it touches ground, stop falling. '''
+
+            # The sphere touches ground: set on right height, stop falling, stop jumping, reset falltime
+        if self._yPos < 0:
+            self._yPos = 0
+            if self._jumping:
                 self._jumping = False
+            if self._falling:
+                self._falling = False
+                self._fallTime = 0
+
+            # The sphere should fall: make it keep falling
+        if self._falling:
+            self._fallTime += 1
+            self._velocity = self._velocity.v_add(Vector([0, - self._fallTime * constants.GRAVITY / 1000.0, 0]))
+            # The sphere shouldn't fall, reset falltime
+        else:
+            if self._fallTime:
+                self._fallTime = 0
 
     def update(self):
         ''' Updates the object coordinates and then
         draws the object.'''
-        self.update_jump()
         self.draw()
 
-    def get_distace_vector(self, shape2):
+    def get_distance_vector(self, shape2):
         return Vector([shape2._xPos - self._xPos,
                        shape2._yPos - self._yPos,
                        shape2._zPos - self._zPos])
@@ -158,7 +189,7 @@ class RotatingShape(Shape):
 
         super(RotatingShape, self).__init__()
 
-    def move(self, directions):
+    def move(self, directions, cube):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
@@ -172,8 +203,16 @@ class RotatingShape(Shape):
         # Compute the new position of the sphere
         xVel = xDir * self._speed
         zVel = zDir * self._speed
-        self._xPos += xVel
-        self._zPos += zVel
+        self._velocity = Vector([xVel, 0.0, zVel])
+        #print "Before", self._velocity.get_value()
+        self.update_jump()
+        self.update_fall()
+        self.check_collision(cube)
+        #print "After", self._velocity.get_value()
+        Vel = self._velocity.get_value()
+        self._xPos += Vel[0]
+        self._yPos += Vel[1]
+        self._zPos += Vel[2]
 
         # Calculate the direction the shape moves in
         self._velocity = Vector([xVel, 0.0, zVel])
@@ -226,13 +265,15 @@ class Sphere(RotatingShape):
     def collide_cube(self, cube):
         ''' Checks if the sphere has collided with the cube.
         If there was a collision, return the normal of the side that
-        the sphere collided with, else return False.
+        the sphere collided with, else return False. If it collides with an
+        edge, return "edge".
         (Very specific, might need to get more general) '''
         #TODO: Take account to collision with the corners
         distance = self.get_distance_vector(cube)
 
                 # The sphere touches either the front or the back side of the cube
         if abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
+           and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
            and abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius:
                 # Check which
             if distance.dot(cube._frontNormal) < 0:
@@ -241,19 +282,62 @@ class Sphere(RotatingShape):
                 return cube._frontNormal
                 # The sphere touches either the left or right side of the cube
         elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 \
-           and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius:
+             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
+             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius:
                 # Check which
             if distance.dot(cube._leftNormal) < 0:
                 return cube._rightNormal
             else:
                 return cube._leftNormal
+                # The sphere touches either the top or bottom of the cube
+        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 \
+             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
+             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 + self._radius:
+                # Check which
+            if distance.dot(cube._upNormal) < 0:
+                return cube._downNormal
+            else:
+                return cube._upNormal
+                # The sphere touches an edge of the cube
+        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius \
+             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius \
+             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 + self._radius:
+            return "edge"
+
                 # The sphere doesn't touch the cube
         else:
-            return 0
+            return False
 
-    def push(self, cube):
-        ''' Makes the sphere push the cube along the coordinate axises '''
-        
+    def push(self, cube, side):
+        ''' Makes the sphere push the cube on the side of the cube defined by the
+        normal vector side '''
+        #TODO: Add a function that does this
+        return
+
+
+    def check_collision(self, cube):
+        ''' Checks if there has been a collision between the sphere and a cube,
+        defines what to do if so. '''
+        distance = self.get_distance_vector(cube)
+        #print "distance vector", distance.get_value()
+        side = self.collide_cube(cube)
+        #if side and side != "edge":
+            #print "side", side.get_value(), "\n"
+        #else:
+            #print "side", side, "\n"
+            #There is a collision
+        if side:
+                # The collision is with an edge, stop the cube from moving in that direction
+            if side == "edge":
+                normalized_distance = distance.v_mult(-1.0).normalize().v_mult(self._speed)
+                self._velocity = self._velocity.v_add(normalized_distance)
+                # The sphere is on top of the cube, don't fall thru
+            elif side == cube._upNormal:
+                #self._touchGround = True
+                self._falling = False
+                # The sphere collides with another side of the cube, push on that side
+            else:
+                self.push(cube, side)
 
 class Cube(Shape):
     ''' Defines a 3D cube. Can move around (glide) in 3D space.'''

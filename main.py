@@ -38,7 +38,7 @@ def init_window():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-def check_user_action(players):
+def check_user_action(players, cube):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -51,21 +51,18 @@ def check_user_action(players):
 
     # Check for movements
     keyState = pygame.key.get_pressed()
-    for player in players:
-        for key in player.get_move_keys():
-            if keyState[key] != 0:
-                # Get the directions and move the object
-                directions = get_user_directions(player.get_move_left_key(),
-                        player.get_move_right_key(), 
-                        player.get_move_forward_key(),
-                        player.get_move_backward_key(), keyState)
-                player.get_shape().move(directions)
-                break # break out of inner loop; only move once
-
+    
     for player in players:
         # Check for jumping
         if keyState[player.get_jump_key()]:
             player.get_shape().jump()
+
+        # Get the directions and move the object
+        directions = get_user_directions(player.get_move_left_key(),
+                        player.get_move_right_key(), 
+                        player.get_move_forward_key(),
+                        player.get_move_backward_key(), keyState)
+        player.get_shape().move(directions, cube)
 
     return True
 
@@ -89,16 +86,20 @@ def main():
     # Initialize list of all the objects associated with a player
     playableShapes = []
     playableShapes.append(shapes.Sphere())
-    playableShapes.append(shapes.Cube())
+    #playableShapes.append(shapes.Cube())
+    cube = shapes.Cube()
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
             DEFAULT_MOVE_RIGHT_KEY, DEFAULT_MOVE_FORWARD_KEY,
             DEFAULT_MOVE_BACKWARD_KEY, DEFAULT_JUMP_KEY)
     players.append(player)
-    player2 = Player("The other Player", playableShapes[1], K_j, K_l,
-            K_i, K_k, K_o)
-    players.append(player2)
+    #player2 = Player("The other Player", playableShapes[1], K_j, K_l,
+    #        K_i, K_k, K_o)
+    #layers.append(player2)
+    player.get_shape().set_xPos(-2)
+    #player2.get_shape().set_xPos(2)
+    cube.set_xPos(2)
 
     run = True
     while run:
@@ -119,11 +120,12 @@ def main():
                   0.0, 1.0, 0.0)
 
 
-        run = check_user_action(players)
+        run = check_user_action(players, cube)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
             shape.update()
+        cube.update()
         pygame.display.flip()
 
         clock.tick(WINDOW_FPS) # Sync with 60 FPS
