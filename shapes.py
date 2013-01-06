@@ -323,7 +323,7 @@ class Sphere(RotatingShape):
         if side:
                 # The collision is with an edge, stop the cube from moving in that direction
                 # TODO: When jumping on top of the cube and hitting an edge, the sphere falls
-                # thru the cube, must be fixed.
+                # thru the cube, must be fixed. 
             if side == "edge":
                 normalized_distance = distance.v_mult(-1.0).normalize().v_mult(self._speed)
                 self._velocity = self._velocity.v_add(normalized_distance)

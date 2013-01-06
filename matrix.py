@@ -1,5 +1,4 @@
 from math import *
-# NOTE: Probably easier with numPy instead of defining own functions
 
 def generate_rotation_matrix(vector, angle):
     ''' Generates a rotation matrix according to OpenGL standards

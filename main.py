@@ -111,8 +111,8 @@ def main():
         #yPos = sphere.get_YPos()
         #zPos = sphere.get_ZPos()
         
-        #gluLookAt(xPos, yPos + 3.0, zPos + 6.0,
-        #          xPos, yPos ,zPos,
+        #gluLookAt(xPos, yPos + 3.0, zPos + 10.0,
+        #          xPos, yPos + 1.5, zPos,
         #          0.0, 1.0, 0.0)
 
         gluLookAt(0.0, 3.0, 10.0,
