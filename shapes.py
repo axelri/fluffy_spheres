@@ -115,9 +115,10 @@ class Shape(object):
 
             # The sphere should fall: make it keep falling
         if self._falling:
-            self._fallTime += 1
+            self._fallTime += 1.0
             self._velocity = self._velocity.v_add(Vector([0.0, - self._fallTime * constants.GRAVITY \
                                                           / constants.SLOW_DOWN , 0.0]))
+
             # The sphere shouldn't fall, reset falltime
         else:
             self.reset_jump_and_fall()
@@ -127,10 +128,23 @@ class Shape(object):
         draws the object.'''
         self.draw()
 
-    def get_distance_vector(self, shape2):
+    def get_distance_shape(self, shape2):
+        ''' Returns the distance between the positions of
+            self and shape2 as a vector '''
         return Vector([shape2._xPos - self._xPos,
                        shape2._yPos - self._yPos,
                        shape2._zPos - self._zPos])
+
+    def get_distance_point(self, point):
+        ''' Returns the distance between the position of the shape
+            and a point as a vector '''
+        if point.__class__.__name__ == 'Vector':
+            p = point.get_value()
+        else:
+            p = point
+        return Vector([p[0] - self._xPos,
+                       p[1] - self._yPos,
+                       p[2] - self._zPos])
 
     # external getters and setters for
     # the instance variables.
@@ -220,6 +234,9 @@ class RotatingShape(Shape):
         rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
         self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
 
+        # Adjust the norm of velocity
+        self._velocity = self._velocity.v_mult(self._rotation)
+
         # Update velocity in y-direction
         self.update_jump()
         self.update_fall()
@@ -267,11 +284,19 @@ class Sphere(RotatingShape):
         ''' Checks if the sphere has collided with the cube.
         If there was a collision, return the normal of the side that
         the sphere collided with, else return False. If it collides with an
-        edge, return "edge".
+        edge, return the distance vector from the center of the sphere
+        to the edge, projected on the corresponding plane (this represents
+        the "normal" of the edge).
         (Very specific, might need to get more general) '''
-        # TODO: Remove redundance in the code (is it possible to calculate which side
+        # TODO: Remove redundance in the code (is it possible to calculate which side or edge
         # the sphere collides with in one call, e.g. a for-loop, instead of three ifs?)
-        distance = self.get_distance_vector(cube)
+        distance = self.get_distance_shape(cube)
+        cubeEdges = cube.get_edges()
+        xyEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[0]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
+        xzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[1]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+        yzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[2]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+
+        ### Check if it touches one of the sides ###
 
                 # The sphere touches either the front or the back side of the cube
         if abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
@@ -302,18 +327,88 @@ class Sphere(RotatingShape):
                 return cube._downNormal
             else:
                 return cube._upNormal
+
+        ### Check if it touches one of the edges ###
             
-                # The sphere touches an edge of the cube
-                # TODO: Edit to be more realistic
-        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius \
-             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius \
-             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 + self._radius:
-            return "edge"
+                # The sphere touches an xyEdge of the cube
+        elif abs(xyEdgeDistance.norm()) <= self._radius and \
+            abs(distance.dot(cube._frontNormal)) <= cube._side / 2:
+            edge = cubeEdges[0].get_value()
+                # The sphere touches one of the right xyEdges
+            if distance.dot(cube._leftNormal) > 0:
+                # Check which
+                if distance.dot(cube._upNormal) > 0:
+                    # Lower right xyEdge
+                    return self.get_distance_point([edge[0], edge[1] - cube._side, edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
+                else:
+                    # Upper right xyEdge
+                    return self.get_distance_point([edge[0], edge[1], edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
+                # The sphere touches one of the left xyEdges
+            else:
+                if distance.dot(cube._upNormal) > 0:
+                    # Lower left xyEdge
+                    return self.get_distance_point([edge[0] - cube._side, edge[1] - cube._side, edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
+                else:
+                    # Upper left xyEdge
+                    return self.get_distance_point([edge[0] - cube._side, edge[1], edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
+
+                # The sphere touches an xzEdge of the cube
+        elif abs(xzEdgeDistance.norm()) <= self._radius and \
+            abs(distance.dot(cube._upNormal)) <= cube._side / 2:
+            edge = cubeEdges[1].get_value()
+                # The sphere touches one of the right xzEdges
+            if distance.dot(cube._leftNormal) > 0:
+                # Check which
+                if distance.dot(cube._frontNormal) > 0:
+                    # Farther right xyEdge
+                    return self.get_distance_point([edge[0], edge[1], edge[2] - cube._side]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                else:
+                    # Nearer right xzEdge
+                    return self.get_distance_point([edge[0], edge[1], edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                # The sphere touches one of the left xzEdges
+            else:
+                if distance.dot(cube._frontNormal) > 0:
+                    # Farther left xzEdge
+                    return self.get_distance_point([edge[0] - cube._side, edge[1], edge[2] - cube._side]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                else:
+                    # Nearer left xzEdge
+                    return self.get_distance_point([edge[0] - cube._side, edge[1], edge[2]]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+
+                # The sphere touches an yzEdge of the cube
+        elif abs(yzEdgeDistance.norm()) <= self._radius and \
+            abs(distance.dot(cube._leftNormal)) <= cube._side / 2:
+            edge = cubeEdges[2].get_value()
+                # The sphere touches one of the farther yzEdges
+            if distance.dot(cube._frontNormal) > 0:
+                # Check which
+                if distance.dot(cube._upNormal) > 0:
+                    # Lower farther yzEdge
+                    return self.get_distance_point([edge[0], edge[1] - cube._side, edge[2] - cube._side]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                else:
+                    # Upper farther yzEdge
+                    return self.get_distance_point([edge[0], edge[1], edge[2] - cube._side]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                # The sphere touches one of the nearer yzEdges
+            else:
+                if distance.dot(cube._upNormal) > 0:
+                    # Lower nearer yzEdge
+                    return self.get_distance_point([edge[0], edge[1] - cube._side, edge[2]]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+                else:
+                    # Upper nearer yzEdge
+                    return self.get_distance_point([edge[0], edge[1], edge[2]]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
 
                 # The sphere doesn't touch the cube
         else:
             return False
 
+    def get_abs_distance_edge(self, cube, edge):
+        ''' Returns the distance from the sphere to the center of the
+            closest one of the four edges (defined by edge) of the cube. '''
+        edge = edge.get_value()
+        xDist = min([abs(edge[0] - self._xPos), abs(edge[0] - cube._side - self._xPos)])
+        yDist = min([abs(edge[1] - self._yPos), abs(edge[1] - cube._side - self._yPos)])
+        zDist = min([abs(edge[2] - self._zPos), abs(edge[2] - cube._side - self._zPos)])
+        return Vector([xDist, yDist, zDist])
+    
     def push(self, cube, side):
         ''' Makes the sphere push the cube on the side of the cube defined by the
         normal vector side '''
@@ -324,24 +419,24 @@ class Sphere(RotatingShape):
     def check_collision(self, cube):
         ''' Checks if there has been a collision between the sphere and a cube,
         defines what to do if so. '''
-        distance = self.get_distance_vector(cube)
+        distance = self.get_distance_shape(cube)
         side = self.collide_cube(cube)
+        speed = self._velocity.norm()
         self.check_fall(cube, side)
         if side:
-                # The collision is with an edge, stop the cube from moving in that direction
-                # TODO: Movements when touching edges are glitchy, fix 
-            if side == "edge":
-                speed = self._velocity.norm()
-                distance = distance.v_mult(-speed)
-                self._velocity = self._velocity.v_add(distance)
                 # The sphere is on top of the cube, don't fall thru
-            elif side == cube._upNormal:
-                self._falling = False
-                self._jumping = False
+            if side == cube._upNormal:
+                self.reset_jump_and_fall()
                 self._yPos = cube._side
+                
                 # The sphere collides with another side of the cube, push on that side
-            else:
+            elif side in cube.get_normals():
                 self.push(cube, side)
+                # The collision is with an edge, stop the cube from moving in that direction
+            else:
+                self._velocity = self._velocity.v_add(side.v_mult(-speed))
+                
+
 
     def check_fall(self, cube, side):
         ''' Checks if the sphere should be falling (is in the air and not on top of the cube)
@@ -371,7 +466,27 @@ class Cube(Shape):
         self._frontNormal = Vector([0.0, 0.0, 1.0])
         self._backNormal = Vector([0.0, 0.0, -1.0])
 
+        # Defines the edges of the cube for better collision
+        self._xyEdges = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xzEdges = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        self._yzEdges = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
 
+    def get_normals(self):
+        ''' Returns the normals of the cube '''
+        return [self._rightNormal, self._leftNormal,
+                         self._upNormal, self._downNormal,
+                         self._frontNormal, self._backNormal]
+        
+    def get_edges(self):
+        ''' Returns the edges of the cube '''
+        return [self._xyEdges, self._xzEdges, self._yzEdges]
+
+    def update_edges(self):
+        ''' Updates the edges of the cube '''
+        self._xyEdges = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xzEdges = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        self._yzEdges = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
+        #print "edges", self._xyEdges.get_value(), self._xzEdges.get_value(), self._yzEdges.get_value()
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''

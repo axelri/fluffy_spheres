@@ -60,7 +60,7 @@ class Vector:
 
     def proj_norm(self, v2):
         ''' Returns the norm of the projection of the vector 
-        on the vector v2 '''
+            on the vector v2 '''
         if v2.norm() != 0:
             e2 = v2.normalize()
             return self.dot(e2)
@@ -79,10 +79,21 @@ class Vector:
 
     def proj_syst(self, e1, e2, e3):
         ''' Returns the projection of the vector in the coordinate system
-            defined by the vectors e1, e2 and e3 '''
+            defined by the vectors e1, e2 and e3 (e1, e2 and e3 must be
+            orthogonal'''
         proj1 = self.projection(e1)
         proj2 = self.projection(e2)
         proj3 = self.projection(e3)
         out = proj1.v_add(proj2.v_add(proj3)) # Adds all vectors
         
         return out
+
+    def proj_plane(self, e1, e2):
+        ''' Returns the projection of the vector on the plane defined
+            by the vectors e1 and e2 (e1 and e2 must be orthogonal) '''
+        proj1 = self.projection(e1)
+        proj2 = self.projection(e2)
+        out = proj1.v_add(proj2)
+
+        return out
+    

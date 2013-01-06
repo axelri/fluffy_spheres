@@ -126,6 +126,7 @@ def main():
         for shape in playableShapes:
             shape.update()
         cube.update()
+        cube.update_edges()
         pygame.display.flip()
 
         clock.tick(WINDOW_FPS) # Sync with 60 FPS
