@@ -274,7 +274,7 @@ class Sphere(RotatingShape):
            and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
            and abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius:
                 # Check which
-            if distance.dot(cube._frontNormal) < 0:
+            if distance.dot(cube._frontNormal) > 0:
                 return cube._backNormal
             else:
                 return cube._frontNormal
@@ -283,7 +283,7 @@ class Sphere(RotatingShape):
              and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
              and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius:
                 # Check which
-            if distance.dot(cube._leftNormal) < 0:
+            if distance.dot(cube._leftNormal) > 0:
                 return cube._rightNormal
             else:
                 return cube._leftNormal
@@ -292,7 +292,7 @@ class Sphere(RotatingShape):
              and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
              and abs(distance.dot(cube._upNormal)) <= cube._side / 2 + self._radius:
                 # Check which
-            if distance.dot(cube._upNormal) < 0:
+            if distance.dot(cube._upNormal) > 0:
                 return cube._downNormal
             else:
                 return cube._upNormal
@@ -310,35 +310,37 @@ class Sphere(RotatingShape):
         ''' Makes the sphere push the cube on the side of the cube defined by the
         normal vector side '''
         #TODO: Add a function that does this
-        cube.move(side.get_value())
-        self._velocity = self._velocity.v_add(side.v_mult(-cube._speed))
+        cube.move(side.v_mult(-1.0).get_value())
+        self._velocity = self._velocity.v_add(side.v_mult(cube._speed))
 
 
     def check_collision(self, cube):
         ''' Checks if there has been a collision between the sphere and a cube,
         defines what to do if so. '''
         distance = self.get_distance_vector(cube)
-        #print "distance vector", distance.get_value()
         side = self.collide_cube(cube)
-        #if side and side != "edge":
-            #print "side", side.get_value(), "\n"
-        #else:
-            #print "side", side, "\n"
-            #There is a collision
+        self.check_fall(cube, side)
         if side:
                 # The collision is with an edge, stop the cube from moving in that direction
-                #TODO: Seems that it sometimes somehow rolls up on top of the cube, this needs
-                # to be fixed
+                # TODO: When jumping on top of the cube and hitting an edge, the sphere falls
+                # thru the cube, must be fixed.
             if side == "edge":
                 normalized_distance = distance.v_mult(-1.0).normalize().v_mult(self._speed)
                 self._velocity = self._velocity.v_add(normalized_distance)
                 # The sphere is on top of the cube, don't fall thru
             elif side == cube._upNormal:
-                #self._touchGround = True
                 self._falling = False
+                self._jumping = False
+                self._yPos = cube._side
                 # The sphere collides with another side of the cube, push on that side
             else:
                 self.push(cube, side)
+
+    def check_fall(self, cube, side):
+        ''' Checks if the cube should be falling (is in the air and not on top of the cube)
+        If so, fall. '''
+        if self._yPos > 0 and side != cube._upNormal:
+                self.fall()
 
 class Cube(Shape):
     ''' Defines a 3D cube. Can move around (glide) in 3D space.'''
