@@ -74,7 +74,7 @@ class Shape(object):
 
         # Set directions
         xDir = directions[0]
-        zDir = directions[1]
+        zDir = directions[2]
 
         # Compute the new position of the sphere
         xVel = xDir * self._speed
@@ -198,17 +198,15 @@ class RotatingShape(Shape):
         # the local variables make it hard.
         # Set directions
         xDir = directions[0]
-        zDir = directions[1]
+        zDir = directions[2]
 
         # Compute the new position of the sphere
         xVel = xDir * self._speed
         zVel = zDir * self._speed
         self._velocity = Vector([xVel, 0.0, zVel])
-        #print "Before", self._velocity.get_value()
         self.update_jump()
         self.update_fall()
         self.check_collision(cube)
-        #print "After", self._velocity.get_value()
         Vel = self._velocity.get_value()
         self._xPos += Vel[0]
         self._yPos += Vel[1]
@@ -312,7 +310,8 @@ class Sphere(RotatingShape):
         ''' Makes the sphere push the cube on the side of the cube defined by the
         normal vector side '''
         #TODO: Add a function that does this
-        return
+        cube.move(side.get_value())
+        self._velocity = self._velocity.v_add(side.v_mult(-cube._speed))
 
 
     def check_collision(self, cube):
@@ -328,6 +327,8 @@ class Sphere(RotatingShape):
             #There is a collision
         if side:
                 # The collision is with an edge, stop the cube from moving in that direction
+                #TODO: Seems that it sometimes somehow rolls up on top of the cube, this needs
+                # to be fixed
             if side == "edge":
                 normalized_distance = distance.v_mult(-1.0).normalize().v_mult(self._speed)
                 self._velocity = self._velocity.v_add(normalized_distance)

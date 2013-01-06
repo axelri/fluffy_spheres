@@ -75,7 +75,7 @@ def get_user_directions(moveLeft, moveRight,
     xDir = keyState[moveRight] - keyState[moveLeft]
     zDir = keyState[moveBackward] - keyState[moveForward]
 
-    return [xDir, zDir]
+    return [xDir, 0.0, zDir]
 
 def main():
     ''' Main routine of the game.'''
@@ -116,7 +116,7 @@ def main():
         #          0.0, 1.0, 0.0)
 
         gluLookAt(0.0, 3.0, 10.0,
-                  0.0, 0.0, 0.0,
+                  0.0, 1.5, 0.0,
                   0.0, 1.0, 0.0)
 
 
