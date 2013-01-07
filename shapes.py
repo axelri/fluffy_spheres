@@ -205,7 +205,7 @@ class RotatingShape(Shape):
 
         super(RotatingShape, self).__init__()
 
-    def move(self, directions, cube):
+    def move(self, directions, cubelist):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
@@ -248,7 +248,8 @@ class RotatingShape(Shape):
         self.update_fall()
         
         # Check if there was a collision with cube
-        self.check_collision(cube)
+        for cube in cubelist:
+            self.check_collision(cube)
 
         # Calculate new position
         Vel = self._velocity.get_value()
@@ -376,12 +377,11 @@ class Sphere(RotatingShape):
                 # push on that side
             elif side in cube.get_normals():
                 self.push(cube, side)
+
                 # The collision is with an edge, stop the cube
                 # from moving in that direction
             else:
                 self._velocity = self._velocity.v_add(side.v_mult(-speed))
-                
-
 
     def check_fall(self, cube, side):
         ''' Checks if the sphere should be falling (is in the air and not

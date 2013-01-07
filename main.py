@@ -38,7 +38,7 @@ def init_window():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-def check_user_action(players, cube):
+def check_user_action(players, cubelist):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -62,7 +62,7 @@ def check_user_action(players, cube):
                         player.get_move_right_key(), 
                         player.get_move_forward_key(),
                         player.get_move_backward_key(), keyState)
-        player.get_shape().move(directions, cube)
+        player.get_shape().move(directions, cubelist)
 
     return True
 
@@ -86,20 +86,23 @@ def main():
     # Initialize list of all the objects associated with a player
     playableShapes = []
     playableShapes.append(shapes.Sphere())
-    #playableShapes.append(shapes.Cube())
+
+    cubelist = []
     cube = shapes.Cube()
+    cube2 = shapes.Cube()
+    cubelist.append(cube)
+    cubelist.append(cube2)
     # List of all the players currently playing
     players = []
     player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
             DEFAULT_MOVE_RIGHT_KEY, DEFAULT_MOVE_FORWARD_KEY,
             DEFAULT_MOVE_BACKWARD_KEY, DEFAULT_JUMP_KEY)
     players.append(player)
-    #player2 = Player("The other Player", playableShapes[1], K_j, K_l,
-    #        K_i, K_k, K_o)
-    #layers.append(player2)
+
     player.get_shape().set_xPos(-2)
-    #player2.get_shape().set_xPos(2)
+
     cube.set_xPos(2)
+    cube2.set_zPos(-2)
 
     run = True
     while run:
@@ -119,14 +122,15 @@ def main():
                   0.0, 1.5, 0.0,
                   0.0, 1.0, 0.0)
 
-
-        run = check_user_action(players, cube)
+        run = check_user_action(players, cubelist)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
+            #shape.update(direction, cubelist)
             shape.update()
-        cube.update()
-        cube.update_edges()
+        for cube in cubelist:      
+            cube.update()
+            cube.update_edges()
         pygame.display.flip()
 
         clock.tick(WINDOW_FPS) # Sync with 60 FPS
