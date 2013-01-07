@@ -3,7 +3,15 @@ class Vector:
     ''' A vector class to simplify calculations on vectors '''
     
     def __init__(self, value):
-        self._value = value      # A list of the values of the vector
+        # Shorter calls for vectors we use a lot
+        if value == 'e_x':
+            self._value = [1.0, 0.0, 0.0]
+        elif value == 'e_y':
+            self._value = [0.0, 1.0, 0.0]
+        elif value == 'e_z':
+            self._value = [0.0, 0.0, 1.0]
+        else:
+            self._value = value
 
     def get_value(self):
         return self._value

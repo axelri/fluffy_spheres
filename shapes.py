@@ -294,26 +294,42 @@ class Sphere(RotatingShape):
 
         cubeEdges = cube.get_edges()
         normals = cube.get_normals()
+
+        unit_vectors = [[Vector('e_x'), Vector('e_y')], [Vector('e_x'), Vector('e_z')], [Vector('e_y'), Vector('e_z')]]
         
-        xyEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[0]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
-        xzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[1]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
-        yzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[2]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
+        xyEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[0]).proj_plane(Vector('e_x'), Vector('e_y'))
+        xzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4]).proj_plane(Vector('e_x'), Vector('e_z'))
+        yzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[8]).proj_plane(Vector('e_y'), Vector('e_z'))
 
         ### Check if it touches one of the sides ###
-
 
                 # A little more abstract, but shortens the code by cyclic permutation
         for i in range(3):
             if abs(distance.dot(normals[2*i])) <= cube._side / 2 \
-                   and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= cube._side / 2 \
-                           and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
-                                   <= cube._side / 2 + self._radius:
+               and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= cube._side / 2 \
+               and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
+               <= cube._side / 2 + self._radius:
                 if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
                     return normals[2*(i+2)%len(normals)]
                 else:
                     return normals[(2*(i+2)+1)%len(normals)]
 
         ### Check if it touches one of the edges ###
+##              # Should work, I don't know why it doesn't...
+##        for i in range(3):
+##            EdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4*i]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+##            if abs(EdgeDistance.norm()) <= self._radius and \
+##                abs(distance.dot(normals[2*i])) <= cube._side / 2:
+##                if distance.dot(normals[2*(i+1)%len(normals)]) < 0:
+##                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+##                        return self.get_distance_point(cubeEdges[4*i]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+##                    else:
+##                        return self.get_distance_point(cubeEdges[4*i+1]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+##                else:
+##                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+##                        return self.get_distance_point(cubeEdges[4*i+2]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+##                    else:
+##                        return self.get_distance_point(cubeEdges[4*i+3]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])                   
             
                 # The sphere touches an xyEdge of the cube
         if abs(xyEdgeDistance.norm()) <= self._radius and \
@@ -340,7 +356,7 @@ class Sphere(RotatingShape):
                 # The sphere touches an xzEdge of the cube
         elif abs(xzEdgeDistance.norm()) <= self._radius and \
             abs(distance.dot(cube._upNormal)) <= cube._side / 2:
-            edge = cubeEdges[1].get_value()
+            edge = cubeEdges[4].get_value()
                 # The sphere touches one of the right xzEdges
             if distance.dot(cube._leftNormal) > 0:
                 # Check which
@@ -362,7 +378,7 @@ class Sphere(RotatingShape):
                 # The sphere touches an yzEdge of the cube
         elif abs(yzEdgeDistance.norm()) <= self._radius and \
             abs(distance.dot(cube._leftNormal)) <= cube._side / 2:
-            edge = cubeEdges[2].get_value()
+            edge = cubeEdges[8].get_value()
                 # The sphere touches one of the farther yzEdges
             if distance.dot(cube._frontNormal) > 0:
                 # Check which
@@ -452,9 +468,28 @@ class Cube(Shape):
         self._backNormal = Vector([0.0, 0.0, -1.0])
 
         # Defines the edges of the cube for better collision
-        self._xyEdges = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
-        self._xzEdges = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
-        self._yzEdges = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
+        # TODO: Call self.update_edges() instead to get rid of redundancy?
+        self._xyEdge1 = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xyEdge2 = Vector([self._xPos + self._side/2, self._yPos - self._side/2, self._zPos])
+        self._xyEdge3 = Vector([self._xPos - self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xyEdge4 = Vector([self._xPos - self._side/2, self._yPos - self._side/2, self._zPos])
+
+
+        # Other definition of edges for less redundant collision code
+        #self._xzEdge1 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
+        #self._xzEdge2 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
+        #self._xzEdge3 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        #self._xzEdge4 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
+        
+        self._xzEdge1 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        self._xzEdge2 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
+        self._xzEdge3 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
+        self._xzEdge4 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
+        
+        self._yzEdge1 = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
+        self._yzEdge2 = Vector([self._xPos, self._yPos - self._side/2, self._zPos + self._side/2])
+        self._yzEdge3 = Vector([self._xPos, self._yPos + self._side/2, self._zPos - self._side/2])
+        self._yzEdge4 = Vector([self._xPos, self._yPos - self._side/2, self._zPos - self._side/2])
 
     def get_normals(self):
         ''' Returns the normals of the cube '''
@@ -464,14 +499,32 @@ class Cube(Shape):
         
     def get_edges(self):
         ''' Returns the edges of the cube '''
-        return [self._xyEdges, self._xzEdges, self._yzEdges]
+        return [self._xyEdge1, self._xyEdge2, self._xyEdge3, self._xyEdge4,
+                self._xzEdge1, self._xzEdge2, self._xzEdge3, self._xzEdge4,
+                self._yzEdge1, self._yzEdge2, self._yzEdge3, self._yzEdge4]
 
     def update_edges(self):
         ''' Updates the edges of the cube '''
-        self._xyEdges = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
-        self._xzEdges = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
-        self._yzEdges = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
-        #print "edges", self._xyEdges.get_value(), self._xzEdges.get_value(), self._yzEdges.get_value()
+        self._xyEdge1 = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xyEdge2 = Vector([self._xPos + self._side/2, self._yPos - self._side/2, self._zPos])
+        self._xyEdge3 = Vector([self._xPos - self._side/2, self._yPos + self._side/2, self._zPos])
+        self._xyEdge4 = Vector([self._xPos - self._side/2, self._yPos - self._side/2, self._zPos])
+
+        # Other definition of edges for less redundant collision code
+        #self._xzEdge1 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
+        #self._xzEdge2 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
+        #self._xzEdge3 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        #self._xzEdge4 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
+        
+        self._xzEdge1 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+        self._xzEdge2 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
+        self._xzEdge3 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
+        self._xzEdge4 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
+        
+        self._yzEdge1 = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
+        self._yzEdge2 = Vector([self._xPos, self._yPos - self._side/2, self._zPos + self._side/2])
+        self._yzEdge3 = Vector([self._xPos, self._yPos + self._side/2, self._zPos - self._side/2])
+        self._yzEdge4 = Vector([self._xPos, self._yPos - self._side/2, self._zPos - self._side/2])
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''
