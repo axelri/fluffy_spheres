@@ -88,10 +88,11 @@ class Shape(object):
         ''' Checks if the shape should jump, if so makes it continue along the
         jumping parabola '''
         # TODO: Small bounce after jump?
-        # NOTE: An involuntary "small bounce" now occurs after a jump because the sphere gets to far down.
-        # We can change this, do we want to?
+        # NOTE: An involuntary "small bounce" now occurs after a jump because
+        # the sphere gets to far down. We can change this, do we want to?
         if self._jumping:
-            self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed / 1000.0, 0]))
+            self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed \
+                                                          / 1000.0, 0]))
 
     def fall(self):
         ''' Makes the shape fall. '''
@@ -106,9 +107,11 @@ class Shape(object):
             self._fallTime = 0
 
     def update_fall(self):
-        ''' Checks if the shape should fall, if so makes it fall. If it touches ground, stop falling. '''
+        ''' Checks if the shape should fall, if so makes it fall.
+            If it touches ground, stop falling. '''
 
-            # The sphere touches ground: set on right height, stop falling, stop jumping, reset falltime
+            # The sphere touches ground: set on right height, stop falling,
+            # stop jumping, reset falltime
         if self._yPos < constants.GROUND_LEVEL:
             self._yPos = constants.GROUND_LEVEL
             self.reset_jump_and_fall()
@@ -116,8 +119,10 @@ class Shape(object):
             # The sphere should fall: make it keep falling
         if self._falling:
             self._fallTime += 1.0
-            self._velocity = self._velocity.v_add(Vector([0.0, - self._fallTime * constants.GRAVITY \
-                                                          / constants.SLOW_DOWN , 0.0]))
+            self._velocity = self._velocity.\
+                             v_add(Vector([0.0, - self._fallTime * \
+                                           constants.GRAVITY / constants.SLOW_DOWN,
+                                                          0.0]))
 
             # The sphere shouldn't fall, reset falltime
         else:
@@ -221,7 +226,8 @@ class RotatingShape(Shape):
 
         # Calculate the axis of rotation
         if self._rotation:
-            self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(self._velocity.normalize())
+            self._rotationAxis = Vector([0.0, 1.0, 0.0]).\
+                                 cross(self._velocity.normalize())
         else:
             self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(self._velocity)
         
@@ -294,7 +300,9 @@ class Sphere(RotatingShape):
         cubeEdges = cube.get_edges()
         normals = cube.get_normals()
 
-        unit_vectors = [[Vector('e_y'), Vector('e_z')], [Vector('e_x'), Vector('e_z')], [Vector('e_x'), Vector('e_y')]]
+        unit_vectors = [[Vector('e_y'), Vector('e_z')],
+                        [Vector('e_x'), Vector('e_z')],
+                        [Vector('e_x'), Vector('e_y')]]
 
         ### Check if it touches one of the sides ###
 
@@ -312,19 +320,24 @@ class Sphere(RotatingShape):
         ### Check if it touches one of the edges ###
                 
         for i in range(3):
-            EdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4*i]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+            EdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4*i]).\
+                           proj_plane(unit_vectors[i][0], unit_vectors[i][1])
             if abs(EdgeDistance.norm()) <= self._radius and \
                 abs(distance.dot(normals[2*i])) <= cube._side / 2:
                 if distance.dot(normals[2*(i+1)%len(normals)]) < 0:
                     if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                        return self.get_distance_point(cubeEdges[4*i]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+                        return self.get_distance_point(cubeEdges[4*i]).\
+                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
                     else:
-                        return self.get_distance_point(cubeEdges[4*i+1]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+                        return self.get_distance_point(cubeEdges[4*i+1]).\
+                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
                 else:
                     if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                        return self.get_distance_point(cubeEdges[4*i+2]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+                        return self.get_distance_point(cubeEdges[4*i+2]).\
+                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
                     else:
-                        return self.get_distance_point(cubeEdges[4*i+3]).proj_plane(unit_vectors[i][0], unit_vectors[i][1])                   
+                        return self.get_distance_point(cubeEdges[4*i+3]).\
+                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])                   
 
                 # The sphere doesn't touch the cube
         else:
@@ -359,18 +372,20 @@ class Sphere(RotatingShape):
                 self.reset_jump_and_fall()
                 self._yPos = cube._side
                 
-                # The sphere collides with another side of the cube, push on that side
+                # The sphere collides with another side of the cube,
+                # push on that side
             elif side in cube.get_normals():
                 self.push(cube, side)
-                # The collision is with an edge, stop the cube from moving in that direction
+                # The collision is with an edge, stop the cube
+                # from moving in that direction
             else:
                 self._velocity = self._velocity.v_add(side.v_mult(-speed))
                 
 
 
     def check_fall(self, cube, side):
-        ''' Checks if the sphere should be falling (is in the air and not on top of the cube)
-        If so, fall. '''
+        ''' Checks if the sphere should be falling (is in the air and not
+            on top of the cube). If so, fall. '''
         if self._yPos > 0 and side != cube._upNormal:
                 self.fall()
 
