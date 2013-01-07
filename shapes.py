@@ -291,47 +291,32 @@ class Sphere(RotatingShape):
         # TODO: Remove redundance in the code (is it possible to calculate which side or edge
         # the sphere collides with in one call, e.g. a for-loop, instead of three ifs?)
         distance = self.get_distance_shape(cube)
+
         cubeEdges = cube.get_edges()
+        normals = cube.get_normals()
+        
         xyEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[0]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 1.0, 0.0]))
         xzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[1]).proj_plane(Vector([1.0, 0.0, 0.0]), Vector([0.0, 0.0, 1.0]))
         yzEdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[2]).proj_plane(Vector([0.0, 1.0, 0.0]), Vector([0.0, 0.0, 1.0]))
 
         ### Check if it touches one of the sides ###
 
-                # The sphere touches either the front or the back side of the cube
-        if abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
-           and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
-           and abs(distance.dot(cube._frontNormal)) <= cube._side / 2 + self._radius:
-                # Check which
-            if distance.dot(cube._frontNormal) > 0:
-                return cube._backNormal
-            else:
-                return cube._frontNormal
-            
-                # The sphere touches either the left or right side of the cube
-        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 \
-             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 \
-             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 + self._radius:
-                # Check which
-            if distance.dot(cube._leftNormal) > 0:
-                return cube._rightNormal
-            else:
-                return cube._leftNormal
-            
-                # The sphere touches either the top or bottom of the cube
-        elif abs(distance.dot(cube._frontNormal)) <= cube._side / 2 \
-             and abs(distance.dot(cube._leftNormal)) <= cube._side / 2 \
-             and abs(distance.dot(cube._upNormal)) <= cube._side / 2 + self._radius:
-                # Check which
-            if distance.dot(cube._upNormal) > 0:
-                return cube._downNormal
-            else:
-                return cube._upNormal
+
+                # A little more abstract, but shortens the code by cyclic permutation
+        for i in range(3):
+            if abs(distance.dot(normals[2*i])) <= cube._side / 2 \
+                   and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= cube._side / 2 \
+                           and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
+                                   <= cube._side / 2 + self._radius:
+                if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+                    return normals[2*(i+2)%len(normals)]
+                else:
+                    return normals[(2*(i+2)+1)%len(normals)]
 
         ### Check if it touches one of the edges ###
             
                 # The sphere touches an xyEdge of the cube
-        elif abs(xyEdgeDistance.norm()) <= self._radius and \
+        if abs(xyEdgeDistance.norm()) <= self._radius and \
             abs(distance.dot(cube._frontNormal)) <= cube._side / 2:
             edge = cubeEdges[0].get_value()
                 # The sphere touches one of the right xyEdges
