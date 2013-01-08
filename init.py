@@ -9,6 +9,7 @@ import shapes
 
 def init_window():
     ''' Initiate pygame, initiate OpenGL, create a window, setup OpenGL'''
+    
     pygame.init()
     pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 
             OPENGL|DOUBLEBUF)
@@ -37,6 +38,8 @@ def init_window():
     glLoadIdentity()
 
 def init_main():
+    ''' Initiate the window, player and all other entities '''
+    
     # Initialize OpenGL and pygame related objects
     init_window()
     # Create a Clock object to maintain framerate
@@ -63,4 +66,5 @@ def init_main():
     player.get_shape().set_xPos(-2)
     cube.set_xPos(2)
     cube2.set_zPos(-2)
+    
     return playableShapes, players, cubelist, clock
