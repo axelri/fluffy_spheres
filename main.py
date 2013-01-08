@@ -1,42 +1,6 @@
 import traceback
 import sys
-import pygame
-from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
-from constants import *
-from player import Player
-import shapes
-
-def init_window():
-    ''' Initiate pygame, initiate OpenGL, create a window, setup OpenGL'''
-    pygame.init()
-    pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 
-            OPENGL|DOUBLEBUF)
-    pygame.display.set_caption("Fluffy spheres") 
-
-    pygame.mouse.set_visible(0)
-
-    glEnable(GL_DEPTH_TEST)
-    glEnable(GL_LIGHTING)
-    glEnable(GL_LIGHT0)
-    glEnable(GL_TEXTURE_2D)
-    glEnable(GL_COLOR_MATERIAL)
-
-    glShadeModel(GL_SMOOTH)
-    glDisable(GL_CULL_FACE)
-    glColorMaterial(GL_FRONT, GL_DIFFUSE)
-
-    glClearColor(0.1, 0.0, 0.1, 0.0)
-    
-    #Setup the camera
-    glMatrixMode(GL_PROJECTION)
-
-    #For the smaller window
-    gluPerspective(45.0, float(WINDOW_WIDTH)/float(WINDOW_HEIGHT), 0.1, 50.0)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
+from init import *
 
 def check_user_action(players, cubelist):
     ''' Checks if the user wants to move
@@ -79,30 +43,8 @@ def get_user_directions(moveLeft, moveRight,
 
 def main():
     ''' Main routine of the game.'''
-    # Initialize OpenGL and pygame related objects
-    init_window()
-    # Create a Clock object to maintain framerate
-    clock = pygame.time.Clock()
-    # Initialize list of all the objects associated with a player
-    playableShapes = []
-    playableShapes.append(shapes.Sphere())
 
-    cubelist = []
-    cube = shapes.Cube()
-    cube2 = shapes.Cube()
-    cubelist.append(cube)
-    cubelist.append(cube2)
-    # List of all the players currently playing
-    players = []
-    player = Player("The Player", playableShapes[0], DEFAULT_MOVE_LEFT_KEY, 
-            DEFAULT_MOVE_RIGHT_KEY, DEFAULT_MOVE_FORWARD_KEY,
-            DEFAULT_MOVE_BACKWARD_KEY, DEFAULT_JUMP_KEY)
-    players.append(player)
-
-    player.get_shape().set_xPos(-2)
-
-    cube.set_xPos(2)
-    cube2.set_zPos(-2)
+    playableShapes, players, cubelist, clock = init_main()
 
     run = True
     while run:
@@ -110,9 +52,9 @@ def main():
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         
-        #xPos = sphere.get_XPos()
-        #yPos = sphere.get_YPos()
-        #zPos = sphere.get_ZPos()
+        #xPos = player.get_shape().get_XPos()
+        #yPos = player.get_shape().get_YPos()
+        #zPos = player.get_shape().get_ZPos()
         
         #gluLookAt(xPos, yPos + 3.0, zPos + 10.0,
         #          xPos, yPos + 1.5, zPos,
