@@ -7,6 +7,7 @@ from control import *
 def main():
     ''' Main routine of the game.'''
 
+    # Initiate OpenGL, the window, the player and all other entities
     playableShapes, players, cubelist, clock = init_main()
 
     run = True
@@ -44,7 +45,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as err:
-        print err
         traceback.print_exc(file=sys.stdout)
     finally:
         pygame.quit()
