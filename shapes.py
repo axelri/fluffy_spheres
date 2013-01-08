@@ -98,8 +98,38 @@ class Shape(object):
     def set_color(self, color):
         self._color = color
 
+class Surface(Shape):
+    ''' Defines a surface '''
+    # TODO: Right now the surface is drawn at y = -1.0 instead of y = 0.
+    # This is because the center of the shapes are defined to be at y = 0
+    # instead of the bottom.
+    def __init__(self, size = constants.SURFACE_SIZE,
+                 yPos = constants.GROUND_LEVEL,
+                 surfaceColor = constants.SURFACE_COLOR,
+                 lineColor = constants.LINE_COLOR):
+        self._surfaceColor = surfaceColor
+        self._lineColor = lineColor
+        self._size = size
+        self._normal = Vector('e_y') # TODO: Make more generic
+        super(Surface, self).__init__()
+
+        self.set_yPos(yPos - 1.0)
+
+    def draw_shape(self):
+        glBegin(GL_QUADS)
+        glColor3fv(self._surfaceColor)
+        glNormal3fv(self._normal.get_value())
+        glVertex3f(-self._size, 0.0, -self._size)
+        glVertex3f(self._size, 0.0, -self._size)
+        glVertex3f(self._size, 0.0, self._size)
+        glVertex3f(-self._size, 0.0, self._size)
+        glEnd()   
+        
+
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
+    # TODO: Add collide_surface()? That way we can check for collision
+    # with the ground, and also call that function in collide_cube.
     def __init__(self):
         super(MovingShape, self).__init__()
 
@@ -237,6 +267,7 @@ class MovingShape(Shape):
     def check_fall(self, cube, side):
         ''' Checks if the shape should be falling (is in the air and not
             on top of the cube). If so, fall. '''
+        # TODO: Check for collision with Surface object rather than ground level.
         if self._yPos > constants.GROUND_LEVEL and side != cube._upNormal:
                 self.fall()
 

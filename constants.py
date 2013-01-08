@@ -4,8 +4,10 @@ from pygame.locals import *
 GRAVITY = 10.0
 SLOW_DOWN = 1000.0
 
-### Other world constants ###
-# TODO: Make this part of a surface object for example?
+### Surface constants ###
+SURFACE_COLOR = [1.0, 0.0, 0.0]
+LINE_COLOR = [0.0, 0.0, 0.0]
+SURFACE_SIZE = 10
 GROUND_LEVEL = 0.0
 
 #### Sphere constants ####
@@ -15,7 +17,7 @@ SPHERE_SPEED = 0.05
 SPHERE_JUMP_SPEED = 300.0
 
 #### Cube constants ####
-CUBE_COLOR = [0.5, 0, 1]
+CUBE_COLOR = [0.5, 0.0, 1.0]
 CUBE_SIDE = 2.0
 CUBE_SPEED = 0.025
 CUBE_JUMP_SPEED = 300.0

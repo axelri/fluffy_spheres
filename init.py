@@ -48,7 +48,7 @@ def init_main():
     playableShapes = []
     playableShapes.append(shapes.Sphere())
 
-    # List all cubes to be used
+    # List of all cubes to be used
     cubelist = []
     cube = shapes.Cube()
     cube2 = shapes.Cube()
@@ -56,6 +56,11 @@ def init_main():
     cubelist.append(cube)
     cubelist.append(cube2)
     #cubelist.append(cube3)
+
+    # List of all surfaces to be used
+    surfList = []
+    surface = shapes.Surface()
+    surfList.append(surface)
     
     # List of all the players currently playing
     players = []
@@ -70,4 +75,4 @@ def init_main():
     cube2.set_zPos(-2)
     #cube3.set_zPos(2)
     
-    return playableShapes, players, cubelist, clock
+    return playableShapes, players, cubelist, surfList, clock
