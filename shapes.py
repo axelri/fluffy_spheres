@@ -392,7 +392,7 @@ class Sphere(RotatingShape):
             elif side in cube.get_normals():
                 self.push(cube, side)
 
-                # The collision is with an edge, stop the cube
+                # The collision is with an edge, stop the sphere
                 # from moving in that direction
             else:
                 self._velocity = self._velocity.v_add(side.v_mult(-speed))
@@ -431,6 +431,14 @@ class Cube(MovingShape):
         # Defines the edges of the cube for better collision
         self.update_edges()
 
+    def update(self, cubelist):
+        # TODO: func doc
+        super(Cube, self).update()
+        self.update_edges()
+        for cube in cubelist:
+            if cube != self:
+                self.check_collision(cube)
+
     def update_edges(self):
         ''' Updates the edges of the cube '''
         self._xyEdge1 = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
@@ -452,6 +460,57 @@ class Cube(MovingShape):
         ''' The drawing routine for Cube. '''
         glColor3fv(self._color)
         glutSolidCube(self._side)
+
+    def push(self, cube2, side):
+        ''' Makes the sphere push the cube on the side of the cube defined by the
+        normal vector side '''
+        cube2.move(side.v_mult(-1.0).get_value())
+
+    def collide_cube(self, cube2):
+        ''' Checks if the cube has collided with another cube.
+        If there was a collision, return the normal of the side that
+        the sphere collided with, else return False.
+        (Very specific, might need to get more general) '''
+
+        distance = self.get_distance_shape(cube2)
+
+        normals = cube2.get_normals()
+        sideLength = cube2.get_side_length()
+
+        # TODO: Edit so that it can return other sides than front and back.
+        for i in range(3):
+            if abs(distance.dot(normals[2*i])) <= sideLength / 2 + self._side / 2 \
+               and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= sideLength / 2 + self._side / 2 \
+               and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
+               <= sideLength / 2 + self._side / 2:
+                if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+                    return normals[2*(i+2)%len(normals)]
+                else:
+                    return normals[(2*(i+2)+1)%len(normals)]
+
+    def check_collision(self, cube2):
+        ''' Checks if there has been a collision between the cube and another cube,
+        defines what to do if so. '''
+        distance = self.get_distance_shape(cube2)
+        side = self.collide_cube(cube2)
+        sideLength = cube2.get_side_length()
+        self.check_fall(cube2, side)
+        if side:
+                # The sphere is on top of the cube, don't fall through
+            if side == cube2._upNormal:
+                self.reset_jump_and_fall()
+                self._yPos = sideLength
+                
+                # The sphere collides with another side of the cube,
+                # push on that side
+            elif side in cube2.get_normals():
+                self.push(cube2, side)
+
+    def check_fall(self, cube2, side):
+        ''' Checks if the cube should be falling (is in the air and not
+            on top of another cube). If so, fall. '''
+        if self._yPos > constants.GROUND_LEVEL and side != cube2._upNormal:
+                self.fall()
 
     # Getters and setters
 

@@ -35,8 +35,7 @@ def main():
             #shape.update(direction, cubelist)
             shape.update()
         for cube in cubelist:      
-            cube.update()
-            cube.update_edges()
+            cube.update(cubelist)
         pygame.display.flip()
 
         clock.tick(WINDOW_FPS) # Sync with 60 FPS
