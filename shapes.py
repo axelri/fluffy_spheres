@@ -446,12 +446,12 @@ class Cube(MovingShape):
 
         # Normals to the sides of the cube, must be updated if we decide to
         # rotate the cube, otherwise they are constant
-        self._rightNormal = Vector([1.0, 0.0, 0.0])
-        self._leftNormal = Vector([-1.0, 0.0, 0.0])
-        self._upNormal = Vector([0.0, 1.0, 0.0])
-        self._downNormal = Vector([0.0, -1.0, 0.0])
-        self._frontNormal = Vector([0.0, 0.0, 1.0])
-        self._backNormal = Vector([0.0, 0.0, -1.0])
+        self._rightNormal = Vector('e_x')
+        self._leftNormal = Vector('e_x').v_mult(-1.0)
+        self._upNormal = Vector('e_y')
+        self._downNormal = Vector('e_y').v_mult(-1.0)
+        self._frontNormal = Vector('e_z')
+        self._backNormal = Vector('e_z').v_mult(-1.0)
 
         # Defines the edges of the cube for better collision
         self.update_edges()
@@ -504,14 +504,17 @@ class Cube(MovingShape):
 
         # TODO: Edit so that it can return other sides than front and back.
         for i in range(3):
-            if abs(distance.dot(normals[2*i])) <= sideLength / 2 + self._side / 2 \
-               and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= sideLength / 2 + self._side / 2 \
+            if abs(distance.dot(normals[2*i])) < sideLength / 2 + self._side / 2 \
+               and abs(distance.dot(normals[2*(i+1)%len(normals)])) < sideLength / 2 + self._side / 2 \
                and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
                <= sideLength / 2 + self._side / 2:
-                if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                    return normals[2*(i+2)%len(normals)]
-                else:
-                    return normals[(2*(i+2)+1)%len(normals)]
+                # TODO: A little ugly, but seems to work OK, maybe change later.
+                if abs(self._velocity.cross(normals[2*(i+2)%len(normals)]).norm()) < 0.0001:
+                    # NOTE: Should be "...norm() == 0:", but I take rounding errors into account
+                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+                        return normals[2*(i+2)%len(normals)]
+                    else:
+                        return normals[(2*(i+2)+1)%len(normals)]
 
     # Getters and setters
 

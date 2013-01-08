@@ -52,8 +52,10 @@ def init_main():
     cubelist = []
     cube = shapes.Cube()
     cube2 = shapes.Cube()
+    #cube3 = shapes.Cube()
     cubelist.append(cube)
     cubelist.append(cube2)
+    #cubelist.append(cube3)
     
     # List of all the players currently playing
     players = []
@@ -66,5 +68,6 @@ def init_main():
     player.get_shape().set_xPos(-2)
     cube.set_xPos(2)
     cube2.set_zPos(-2)
+    #cube3.set_zPos(2)
     
     return playableShapes, players, cubelist, clock
