@@ -56,7 +56,7 @@ class Camera:
         self._zPos = self._zDist
 
         self._xAngle = 0.0
-        self._yAngle = 0.0
+        # self._yAngle = 0.0
 
         # The up vector for the camera
         self._up = [0.0, 1.0, 0.0]        
@@ -76,18 +76,18 @@ class Camera:
         mouseX, mouseY = pygame.mouse.get_pos()
 
         diffX = (mouseX - WINDOW_WIDTH / 2.0) * pi / 180.0
-        diffY = (mouseY - WINDOW_HEIGHT / 2.0) * pi / 180.0
+        # diffY = (mouseY - WINDOW_HEIGHT / 2.0) * pi / 180.0
 
-        #self._xAngle += diffX
-        #self._yAngle += diffY
+        # self._xAngle += diffX
+        # self._yAngle += diffY
 
-        #self._xPos = playerX + sin(self._xAngle) * self._zDist
-        #self._zPos = playerZ + cos(self._xAngle) * self._zDist
+        # self._xPos = playerX + sin(self._xAngle) * self._zDist
+        # self._zPos = playerZ + cos(self._xAngle) * self._zDist
         self._xPos = playerX + sin(diffX) * self._zDist
         self._zPos = playerZ + cos(diffX) * self._zDist
 
-        #pygame.mouse.set_pos(WINDOW_WIDTH / 2,
-        #                 WINDOW_HEIGHT / 2)
+        # pygame.mouse.set_pos(WINDOW_WIDTH / 2,
+                        # WINDOW_HEIGHT / 2)
 
     def update(self, playerX, playerY, playerZ):
         ''' Updates the camera '''

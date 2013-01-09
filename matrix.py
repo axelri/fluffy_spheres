@@ -34,7 +34,7 @@ def matrix_mult(a, b):
         The matrices are given in OpenGL standard, that is,
         a 4x4 matrix written in column-major order, represented
         as a list. '''
-    out = [0]*16  
+    out = [0]*16
     for i in range(4):
         for k in range(4):
             out[4*i + k] = a[k]*b[4*i] + a[k+4]*b[4*i+1] + a[k+8]*b[4*i+2] + a[k+12]*b[4*i+3]

@@ -17,8 +17,6 @@ class Shape(object):
     def __init__(self):
         ''' Constructor for the Shape object. Takes one optional
         color argument'''
-        # TODO: maybe better to make Shape an abstract base class?
-        # check out the abc module in python
         if self.__class__.__name__ == 'Shape':
             raise Exception('Shape must be subclassed in order to be used!')
 
@@ -53,6 +51,7 @@ class Shape(object):
         draws the object.'''
         self.draw()
 
+    # TODO: Maybe move to Vector instead?
     def get_distance_shape(self, shape2):
         ''' Returns the distance between the positions of
             self and shape2 as a vector '''
@@ -60,6 +59,7 @@ class Shape(object):
                        shape2._yPos - self._yPos,
                        shape2._zPos - self._zPos])
 
+    # TODO: Maybe move to Vector instead?
     def get_distance_point(self, point):
         ''' Returns the distance between the position of the shape
             and a point as a vector '''
@@ -94,9 +94,6 @@ class Shape(object):
 
     def get_color(self):
         return self._color
-
-    def set_color(self, color):
-        self._color = color
 
 class Surface(Shape):
     ''' Defines a surface '''
@@ -178,7 +175,7 @@ class MovingShape(Shape):
         # the sphere gets to far down. We can change this, do we want to?
         if self._jumping:
             self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed \
-                                                          / 1000.0, 0]))
+                                                          / constants.SLOW_DOWN, 0]))
 
     def fall(self):
         ''' Makes the shape fall. '''
@@ -300,6 +297,7 @@ class RotatingShape(MovingShape):
         super(RotatingShape, self).__init__()
 
     def move(self, directions, cubelist):
+        # TODO: refactor first half to MovingShape
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
@@ -316,14 +314,11 @@ class RotatingShape(MovingShape):
 
         # Calculate the direction the shape moves in
         self._velocity = Vector([xVel, 0.0, zVel])
+        # Angle of the rotation that will be executed, in radians
+        # TODO: Make _rotation and _rotationAxis local variables
         self._rotation = self._velocity.norm() / self._radius
 
-        # Calculate the axis of rotation
-        if self._rotation:
-            self._rotationAxis = Vector([0.0, 1.0, 0.0]).\
-                                 cross(self._velocity.normalize())
-        else:
-            self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(self._velocity)
+        self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(self._velocity)
         
         # NOTE: The vector [0,1,0] should really be the normal
         # of the surface in the contact point, but that
@@ -333,9 +328,6 @@ class RotatingShape(MovingShape):
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
         self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
-
-        # Adjust the norm of velocity
-        self._velocity = self._velocity.v_mult(self._rotation)
 
         # Update velocity in y-direction
         self.update_jump()
@@ -420,10 +412,16 @@ class Sphere(RotatingShape):
         # Check if it touches one of the edges
                 
         for i in range(3):
+            # distance to the neareast of the four edges (in this loop)
+            # the edge is considered a line of infinite length
             EdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4*i]).\
                            proj_plane(unit_vectors[i][0], unit_vectors[i][1])
+            # if the outer border of Sphere is less than the distance...
+            # ...and the Sphere is on the ACTUAL edge
             if abs(EdgeDistance.norm()) <= self._radius and \
                 abs(distance.dot(normals[2*i])) <= sideLength / 2:
+                # check all of the edges, return a the normal of the point
+                # in which the Sphere and the edge collide
                 if distance.dot(normals[2*(i+1)%len(normals)]) < 0:
                     if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
                         return self.get_distance_point(cubeEdges[4*i]).\
@@ -533,7 +531,6 @@ class Cube(MovingShape):
         normals = cube2.get_normals()
         sideLength = cube2.get_side_length()
 
-        # TODO: Edit so that it can return other sides than front and back.
         for i in range(3):
             if abs(distance.dot(normals[2*i])) < sideLength / 2 + self._side / 2 \
                and abs(distance.dot(normals[2*(i+1)%len(normals)])) < sideLength / 2 + self._side / 2 \

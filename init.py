@@ -17,8 +17,8 @@ def init_window():
     pygame.display.set_caption("Fluffy spheres") 
 
     pygame.mouse.set_visible(0)
-    pygame.mouse.set_pos(WINDOW_WIDTH / 2,
-                         WINDOW_HEIGHT / 2)
+    pygame.mouse.set_pos(WINDOW_WIDTH / 2.0,
+                         WINDOW_HEIGHT / 2.0)
 
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_LIGHTING)
