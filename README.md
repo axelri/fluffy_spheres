@@ -11,14 +11,13 @@ These libraries are also required:
 
 ## TODO ##
 * Textures
-* Bottom plane
-* Other shapes than sphere
-* Collision
+* Bottom plane (in prog)
+* Collision (in prog)
 * Level design
-* UI design
-* Cross-plattform font library
-* Make the camera follow the sphere
-* Look in different directions using mouse
+* UI design (menu)
+* Cross-plattform font library ()
+* Make the camera follow the sphere (in prog)
+* Look in different directions using mouse (in prog)
 
 Maybe look into alternative frameworks to GLUT, such as [freeglut](http://freeglut.sourceforge.net/ "freeglut"),
 [GLFW](http://www.glfw.org/ "GLFW") and [GLEW](http://glew.sourceforge.net/ "GLEW").

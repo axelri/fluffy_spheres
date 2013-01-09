@@ -22,11 +22,11 @@ def main():
         yPos = player.get_shape().get_yPos()
         zPos = player.get_shape().get_zPos()
         
-        # camera.update(xPos, yPos, zPos)
+        camera.update(xPos, yPos, zPos)
 
-        gluLookAt(0.0, 3.0, 10.0,
-                 0.0, 1.5, 0.0,
-                 0.0, 1.0, 0.0)
+        # gluLookAt(0.0, 3.0, 10.0,
+        #          0.0, 1.5, 0.0,
+        #          0.0, 1.0, 0.0)
 
         run = check_user_action(players, cubeList)
         # update the object, translate
