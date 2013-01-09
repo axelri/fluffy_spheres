@@ -3,8 +3,9 @@ from pygame.locals import *
 from OpenGL.GLU import *
 from math import *
 from constants import *
+from vector import Vector
 
-def check_user_action(players, cubelist):
+def check_user_action(players, cubelist, forwardVector):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -27,21 +28,30 @@ def check_user_action(players, cubelist):
         directions = get_user_directions(player.get_move_left_key(),
                         player.get_move_right_key(), 
                         player.get_move_forward_key(),
-                        player.get_move_backward_key(), keyState)
+                        player.get_move_backward_key(), keyState,
+                        forwardVector)
         player.get_shape().move(directions, cubelist)
 
     return True
 
 def get_user_directions(moveLeft, moveRight,
-            moveForward, moveBackward, keyState):
+            moveForward, moveBackward, keyState, forwardVector):
     ''' Gets input from the user. Takes 4 KEY parameters
     and a map of the current keyboard key state. Returns an array 
     of directions on the X and Z axis. The directions can be
     1, -1 or 0 '''
-    xDir = keyState[moveRight] - keyState[moveLeft]
-    zDir = keyState[moveBackward] - keyState[moveForward]
+    xDir = keyState[moveLeft] - keyState[moveRight]
+    zDir = keyState[moveForward] - keyState[moveBackward]
 
-    return [xDir, 0.0, zDir]
+    # make new relative directions from the camera
+    leftVector = Vector('e_y').cross(forwardVector)
+
+    xVect = leftVector.v_mult(xDir)
+    zVect = forwardVector.v_mult(zDir)
+
+    direction = xVect.v_add(zVect)
+
+    return direction.get_value()
 
 class Camera:
     def __init__(self):
@@ -56,7 +66,6 @@ class Camera:
         self._zPos = self._zDist
 
         self._xAngle = 0.0
-        # self._yAngle = 0.0
 
         # The up vector for the camera
         self._up = [0.0, 1.0, 0.0]        
@@ -75,21 +84,15 @@ class Camera:
         on the movement of the player and the mouse '''
         mouseX, mouseY = pygame.mouse.get_rel()
 
-        # diffX = (mouseX - WINDOW_WIDTH / 2.0) * pi / 180.0
-        # diffY = (mouseY - WINDOW_HEIGHT / 2.0) * pi / 180.0
-
         self._xAngle += mouseX * pi / 180.0 * MOUSE_SENSITIVITY
-        # self._yAngle += diffY
 
         self._xPos = playerX + sin(self._xAngle) * self._zDist
         self._zPos = playerZ + cos(self._xAngle) * self._zDist
-        # self._xPos = playerX + sin(mouseX) * self._zDist
-        # self._zPos = playerZ + cos(mouseX) * self._zDist
-
-        # pygame.mouse.set_pos(WINDOW_WIDTH / 2,
-                        # WINDOW_HEIGHT / 2)
 
     def update(self, playerX, playerY, playerZ):
         ''' Updates the camera '''
         self.move(playerX, playerY, playerZ)
         self.view(playerX, playerY, playerZ)
+        return Vector([playerX - self._xPos, playerY - self._yPos,
+                playerZ - self._zPos]).proj_plane(Vector('e_x'),
+                        Vector('e_z')).normalize()

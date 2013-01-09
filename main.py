@@ -21,14 +21,14 @@ def main():
         yPos = player.get_shape().get_yPos()
         zPos = player.get_shape().get_zPos()
         
-        camera.update(xPos, yPos, zPos)
+        forwardVector = camera.update(xPos, yPos, zPos)
         glLightfv(GL_LIGHT0, GL_POSITION, LIGHT0_POSITION)
 
         # gluLookAt(0.0, 3.0, 10.0,
         #          0.0, 1.5, 0.0,
         #          0.0, 1.0, 0.0)
 
-        run = check_user_action(players, cubeList)
+        run = check_user_action(players, cubeList, forwardVector)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
