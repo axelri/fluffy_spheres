@@ -73,18 +73,18 @@ class Camera:
     def move(self, playerX, playerY, playerZ):
         ''' Moves the camera to the right position based
         on the movement of the player and the mouse '''
-        mouseX, mouseY = pygame.mouse.get_pos()
+        mouseX, mouseY = pygame.mouse.get_rel()
 
-        diffX = (mouseX - WINDOW_WIDTH / 2.0) * pi / 180.0
+        # diffX = (mouseX - WINDOW_WIDTH / 2.0) * pi / 180.0
         # diffY = (mouseY - WINDOW_HEIGHT / 2.0) * pi / 180.0
 
-        # self._xAngle += diffX
+        self._xAngle += mouseX * pi / 180.0 * MOUSE_SENSITIVITY
         # self._yAngle += diffY
 
-        # self._xPos = playerX + sin(self._xAngle) * self._zDist
-        # self._zPos = playerZ + cos(self._xAngle) * self._zDist
-        self._xPos = playerX + sin(diffX) * self._zDist
-        self._zPos = playerZ + cos(diffX) * self._zDist
+        self._xPos = playerX + sin(self._xAngle) * self._zDist
+        self._zPos = playerZ + cos(self._xAngle) * self._zDist
+        # self._xPos = playerX + sin(mouseX) * self._zDist
+        # self._zPos = playerZ + cos(mouseX) * self._zDist
 
         # pygame.mouse.set_pos(WINDOW_WIDTH / 2,
                         # WINDOW_HEIGHT / 2)

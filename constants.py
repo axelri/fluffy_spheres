@@ -33,8 +33,22 @@ DEFAULT_JUMP_KEY = K_SPACE
 WINDOW_FPS = 60
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
+HAVE_FULLSCREEN = False
+
+# written to later, ugly?
+FULLSCREEN_WIDTH = 0
+FULLSCREEN_HEIGHT = 0
 
 ### Camera constants ###
 CAMERA_X_DISTANCE = 0.0
 CAMERA_Y_DISTANCE = 1.5
 CAMERA_Z_DISTANCE = 10.0
+
+### Lightning constants ###
+LIGHT0_POSITION = [0.0, 10.0, 5.0]
+
+### Development ###
+DEBUG = True
+
+### User settings ###
+MOUSE_SENSITIVITY = 0.3

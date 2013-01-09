@@ -12,13 +12,24 @@ def init_window():
     ''' Initiate pygame, initiate OpenGL, create a window, setup OpenGL'''
     
     pygame.init()
-    pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 
-            OPENGL|DOUBLEBUF)
+    FULLSCREEN_WIDTH = pygame.display.Info().current_w
+    FULLSCREEN_HEIGHT = pygame.display.Info().current_h
+    if HAVE_FULLSCREEN:
+        pygame.display.set_mode((FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT), 
+                OPENGL|DOUBLEBUF|FULLSCREEN)
+    else:
+        pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 
+                OPENGL|DOUBLEBUF)
+
     pygame.display.set_caption("Fluffy spheres") 
+    # NOTE: Locks all input events to the pygame window, maybe DANGEROUS
+    pygame.event.set_grab(True)
+    width = pygame.display.Info().current_w
+    height = pygame.display.Info().current_h
 
     pygame.mouse.set_visible(0)
-    pygame.mouse.set_pos(WINDOW_WIDTH / 2.0,
-                         WINDOW_HEIGHT / 2.0)
+    pygame.mouse.set_pos(width/ 2.0,
+                         height / 2.0)
 
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_LIGHTING)
@@ -35,8 +46,7 @@ def init_window():
     #Setup the camera
     glMatrixMode(GL_PROJECTION)
 
-    #For the smaller window
-    gluPerspective(45.0, float(WINDOW_WIDTH)/float(WINDOW_HEIGHT), 0.1, 50.0)
+    gluPerspective(45.0, float(width)/float(height), 0.1, 50.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 

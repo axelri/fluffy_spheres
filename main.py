@@ -3,7 +3,6 @@ import sys
 from init import *
 from control import *
 
-
 def main():
     ''' Main routine of the game.'''
 
@@ -23,6 +22,7 @@ def main():
         zPos = player.get_shape().get_zPos()
         
         camera.update(xPos, yPos, zPos)
+        glLightfv(GL_LIGHT0, GL_POSITION, LIGHT0_POSITION)
 
         # gluLookAt(0.0, 3.0, 10.0,
         #          0.0, 1.5, 0.0,

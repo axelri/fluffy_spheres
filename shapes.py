@@ -370,8 +370,8 @@ class Sphere(RotatingShape):
     def draw_shape(self):
         ''' The drawing routine for Sphere '''
         glColor3fv(self._color)
-        # glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
-        glutSolidSphere(self._radius, 10, 10)   # To look at rotation
+        glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
+        # glutSolidSphere(self._radius, 10, 10)   # To look at rotation
         # glutWireTeapot(self._radius)
 
     def get_abs_distance_edge(self, cube, edge):
