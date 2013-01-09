@@ -1,5 +1,8 @@
 import pygame
 from pygame.locals import *
+from OpenGL.GLU import *
+from math import *
+from constants import *
 
 def check_user_action(players, cubelist):
     ''' Checks if the user wants to move
@@ -39,3 +42,54 @@ def get_user_directions(moveLeft, moveRight,
     zDir = keyState[moveBackward] - keyState[moveForward]
 
     return [xDir, 0.0, zDir]
+
+class Camera:
+    def __init__(self):
+        # The distance from the camera to the player
+        self._xDist = CAMERA_X_DISTANCE
+        self._yDist = CAMERA_Y_DISTANCE
+        self._zDist = CAMERA_Z_DISTANCE
+
+        # The position of the camera
+        self._xPos = self._xDist
+        self._yPos = self._yDist
+        self._zPos = self._zDist
+
+        self._xAngle = 0.0
+        self._yAngle = 0.0
+
+        # The up vector for the camera
+        self._up = [0.0, 1.0, 0.0]        
+
+    def view(self, playerX, playerY, playerZ):
+        ''' Calculates a translation/rotation matrix
+        to move the camera to the right position and
+        multiplies it with the current matrix used by
+        OpenGL '''
+        gluLookAt(self._xPos, self._yPos, self._zPos,
+                  playerX, playerY, playerZ,
+                  self._up[0], self._up[1], self._up[2])
+
+    def move(self, playerX, playerY, playerZ):
+        ''' Moves the camera to the right position based
+        on the movement of the player and the mouse '''
+        mouseX, mouseY = pygame.mouse.get_pos()
+
+        diffX = (mouseX - WINDOW_WIDTH / 2.0) * pi / 180.0
+        diffY = (mouseY - WINDOW_HEIGHT / 2.0) * pi / 180.0
+
+        #self._xAngle += diffX
+        #self._yAngle += diffY
+
+        #self._xPos = playerX + sin(self._xAngle) * self._zDist
+        #self._zPos = playerZ + cos(self._xAngle) * self._zDist
+        self._xPos = playerX + sin(diffX) * self._zDist
+        self._zPos = playerZ + cos(diffX) * self._zDist
+
+        #pygame.mouse.set_pos(WINDOW_WIDTH / 2,
+        #                 WINDOW_HEIGHT / 2)
+
+    def update(self, playerX, playerY, playerZ):
+        ''' Updates the camera '''
+        self.move(playerX, playerY, playerZ)
+        self.view(playerX, playerY, playerZ)

@@ -8,7 +8,7 @@ def main():
     ''' Main routine of the game.'''
 
     # Initiate OpenGL, the window, the player and all other entities
-    playableShapes, players, cubeList, surfaceList, clock = init_main()
+    playableShapes, players, cubeList, surfaceList, clock, camera = init_main()
 
     player = players[0]
     
@@ -22,15 +22,13 @@ def main():
         yPos = player.get_shape().get_yPos()
         zPos = player.get_shape().get_zPos()
         
-        gluLookAt(xPos, yPos + 3.0, zPos + 10.0,
-                  xPos, yPos + 1.5, zPos,
-                  0.0, 1.0, 0.0)
+        camera.update(xPos, yPos, zPos)
 
         #gluLookAt(0.0, 3.0, 10.0,
         #          0.0, 1.5, 0.0,
         #          0.0, 1.0, 0.0)
 
-        run = check_user_action(players, cubelist)
+        run = check_user_action(players, cubeList)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:

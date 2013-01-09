@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from constants import *
 from player import Player
+from control import Camera
 import shapes
 
 def init_window():
@@ -16,6 +17,8 @@ def init_window():
     pygame.display.set_caption("Fluffy spheres") 
 
     pygame.mouse.set_visible(0)
+    pygame.mouse.set_pos(WINDOW_WIDTH / 2,
+                         WINDOW_HEIGHT / 2)
 
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_LIGHTING)
@@ -44,6 +47,9 @@ def init_main():
     init_window()
     # Create a Clock object to maintain framerate
     clock = pygame.time.Clock()
+
+    # Create a camera object for viewing
+    camera = Camera()
     # Initialize list of all the objects associated with a player
     playableShapes = []
     playableShapes.append(shapes.Sphere())
@@ -75,4 +81,4 @@ def init_main():
     cube2.set_zPos(-2)
     #cube3.set_zPos(2)
     
-    return playableShapes, players, cubelist, surfList, clock
+    return playableShapes, players, cubelist, surfList, clock, camera
