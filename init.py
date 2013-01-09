@@ -66,12 +66,12 @@ def init_main():
 
     # List of all cubes to be used
     cubelist = []
-    cube = shapes.Cube()
-    cube2 = shapes.Cube()
-    #cube3 = shapes.Cube()
+    cube = shapes.Cube(color=[1.0, 0.0, 0.0])
+    cube2 = shapes.Cube(color=[0.0, 1.0, 0.0])
+    cube3 = shapes.Cube(color=[0.0, 0.0, 1.0])
     cubelist.append(cube)
     cubelist.append(cube2)
-    #cubelist.append(cube3)
+    cubelist.append(cube3)
 
     # List of all surfaces to be used
     surfList = []

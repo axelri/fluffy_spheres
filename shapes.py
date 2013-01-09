@@ -370,8 +370,9 @@ class Sphere(RotatingShape):
     def draw_shape(self):
         ''' The drawing routine for Sphere '''
         glColor3fv(self._color)
-        glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
+        # glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         # glutSolidSphere(self._radius, 10, 10)   # To look at rotation
+        glutSolidSphere(self._radius, 10, 40)   # To look at rotation
         # glutWireTeapot(self._radius)
 
     def get_abs_distance_edge(self, cube, edge):
@@ -488,6 +489,11 @@ class Cube(MovingShape):
 
     def update(self, cubelist):
         # TODO: func doc
+        # NOTE: the order makes the cubes push one another in
+        # opposite directions, fix with surfaces, maybe
+        # an instance variable "beingPushed" that prevents
+        # the particular surface from pushing back
+        # OR make the cube with the highest velocity dominate the others =)
         super(Cube, self).update()
         self.update_edges()
         for cube in cubelist:
