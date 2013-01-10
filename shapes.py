@@ -194,6 +194,7 @@ class MovingShape(Shape):
         # NOTE: The object must also be falling in order to return to ground;
         # for the sphere this is fixed by check_fall()
         self._jumping = True
+        self.fall()
 
     def update_jump(self):
         ''' Checks if the shape should jump, if so makes it continue along the
@@ -217,6 +218,11 @@ class MovingShape(Shape):
             self._falling = False
             self._fallTime = 0
 
+    def reset_falltime(self):
+        ''' Resets fallTime '''
+        self._fallTime = 0
+
+
     def update_fall(self):
         ''' Checks if the shape should fall, if so makes it fall.
             If it touches ground, stop falling. '''
@@ -228,9 +234,9 @@ class MovingShape(Shape):
 
             # The sphere touches ground: set on right height, stop falling,
             # stop jumping, reset falltime
-        if self._yPos < constants.GROUND_LEVEL + self.get_border_distance():
-            self._yPos = constants.GROUND_LEVEL + self.get_border_distance()
-            self.reset_jump_and_fall()
+        #if self._yPos < constants.GROUND_LEVEL + self.get_border_distance():
+        #    self._yPos = constants.GROUND_LEVEL + self.get_border_distance()
+        #   self.reset_jump_and_fall()
 
             # The sphere should fall: make it keep falling
         if self._falling:
@@ -249,18 +255,18 @@ class MovingShape(Shape):
             If it has, return True, else return False. '''
         points = surface.get_points()
         normal = surface.get_normal()
-        edgeVector1 = points[0].distance_vector(points[1])
-        edgeVector2 = points[1].distance_vector(points[2])
+        edgeVector1 = Vector(points[0]).distance_vector(Vector(points[1]))
+        edgeVector2 = Vector(points[1]).distance_vector(Vector(points[2]))
         width = edgeVector1.norm()
         length = edgeVector2.norm()
         edgeVector1 = edgeVector1.normalize()
         edgeVector2 = edgeVector2.normalize()
-        distance = Vector(self.get_center).distance_vector(Vector(surface.get_center))
+        distance = Vector(self.get_center()).distance_vector(Vector(surface.get_center()))
 
         if abs(distance.dot(edgeVector1)) < width / 2.0 \
            and abs(distance.dot(edgeVector2)) < length / 2.0 \
            and abs(distance.dot(normal)) <= self.get_border_distance() \
-           + self._velocity.dot(normal).norm():
+           + abs(self._velocity.dot(normal)):
             return True
         else:
             return False
@@ -347,7 +353,7 @@ class RotatingShape(MovingShape):
 
         super(RotatingShape, self).__init__()
 
-    def move(self, directions, cubelist):
+    def move(self, directions, cubelist, surfaceList):
         # TODO: refactor first half to MovingShape
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
@@ -385,8 +391,11 @@ class RotatingShape(MovingShape):
         self.update_fall()
         
         # Check if there was a collision with cube
-        for cube in cubelist:
-            self.check_collision(cube)
+        #for cube in cubelist:
+        #    self.check_collision(cube)
+
+        for surface in surfaceList:
+            self.check_surf_collision(surface)
 
         # Calculate new position
         Vel = self._velocity.get_value()
@@ -492,6 +501,13 @@ class Sphere(RotatingShape):
 
         # The sphere doesn't touch the cube
         return False
+
+    def check_surf_collision(self, surface):
+
+        if self.collide(surface):
+            self.reset_jump_and_fall()
+        else:
+            self.fall()
 
     def check_collision(self, cube):
         ''' Checks if there has been a collision between the sphere and a cube,

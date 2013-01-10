@@ -28,7 +28,7 @@ def main():
         #          0.0, 1.5, 0.0,
         #          0.0, 1.0, 0.0)
 
-        run = check_user_action(players, cubeList, forwardVector)
+        run = check_user_action(players, cubeList, forwardVector, surfaceList)
         # update the object, translate
         # and then draw it
         for shape in playableShapes:

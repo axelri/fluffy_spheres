@@ -5,7 +5,7 @@ from math import *
 from constants import *
 from vector import Vector
 
-def check_user_action(players, cubelist, forwardVector):
+def check_user_action(players, cubelist, forwardVector, surfaceList):
     ''' Checks if the user wants to move
     the playable object, or quit the came, then delegates to the methods
     of that object. Takes one playable object.'''
@@ -30,7 +30,7 @@ def check_user_action(players, cubelist, forwardVector):
                         player.get_move_forward_key(),
                         player.get_move_backward_key(), keyState,
                         forwardVector)
-        player.get_shape().move(directions, cubelist)
+        player.get_shape().move(directions, cubelist, surfaceList)
 
     return True
 

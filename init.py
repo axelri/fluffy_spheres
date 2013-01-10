@@ -67,12 +67,12 @@ def init_main():
 
     # List of all cubes to be used
     cubelist = []
-    cube = shapes.Cube(color=[1.0, 0.0, 0.0])
-    cube2 = shapes.Cube(color=[0.0, 1.0, 0.0])
-    cube3 = shapes.Cube(color=[0.0, 0.0, 1.0])
-    cubelist.append(cube)
-    cubelist.append(cube2)
-    cubelist.append(cube3)
+   # cube = shapes.Cube(color=[1.0, 0.0, 0.0])
+   # cube2 = shapes.Cube(color=[0.0, 1.0, 0.0])
+   # cube3 = shapes.Cube(color=[0.0, 0.0, 1.0])
+    #cubelist.append(cube)
+    #cubelist.append(cube2)
+    #cubelist.append(cube3)
 
     # List of all surfaces to be used
     surfList = []
@@ -88,8 +88,8 @@ def init_main():
 
     # Set initial positions for all entities
     player.get_shape().set_xPos(-2)
-    cube.set_xPos(2)
-    cube2.set_zPos(-2)
+    #cube.set_xPos(2)
+    #cube2.set_zPos(-2)
     #cube3.set_zPos(2)
     
     return playableShapes, players, cubelist, surfList, clock, camera
