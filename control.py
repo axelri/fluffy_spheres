@@ -84,7 +84,7 @@ class Camera:
         on the movement of the player and the mouse '''
         mouseX, mouseY = pygame.mouse.get_rel()
 
-        self._xAngle += mouseX * pi / 180.0 * MOUSE_SENSITIVITY
+        self._xAngle -= mouseX * pi / 180.0 * MOUSE_SENSITIVITY
 
         self._xPos = playerX + sin(self._xAngle) * self._zDist
         self._zPos = playerZ + cos(self._xAngle) * self._zDist

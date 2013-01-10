@@ -5,7 +5,7 @@ GRAVITY = 10.0
 SLOW_DOWN = 1000.0
 
 ### Surface constants ###
-SURFACE_COLOR = [1.0, 0.0, 0.0]
+SURFACE_COLOR = [0.5, 0.0, 1.0]
 LINE_COLOR = [0.0, 0.0, 0.0]
 SURFACE_SIZE = 10
 GROUND_LEVEL = 0.0
