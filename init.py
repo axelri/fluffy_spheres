@@ -6,6 +6,7 @@ from OpenGL.GLUT import *
 from constants import *
 from player import Player
 from control import Camera
+from vector import Vector
 import shapes
 
 def init_window():
@@ -46,7 +47,7 @@ def init_window():
     #Setup the camera
     glMatrixMode(GL_PROJECTION)
 
-    gluPerspective(45.0, float(width)/float(height), 0.1, 50.0)
+    gluPerspective(45.0, float(width)/float(height), 0.1, 100.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 

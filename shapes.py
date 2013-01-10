@@ -100,26 +100,58 @@ class Surface(Shape):
     # TODO: Right now the surface is drawn at y = -1.0 instead of y = 0.
     # This is because the center of the shapes are defined to be at y = 0
     # instead of the bottom.
-    def __init__(self, size = constants.SURFACE_SIZE,
-                 yPos = constants.GROUND_LEVEL,
+    def __init__(self, length = constants.SURFACE_SIZE,
+                 width = constants.SURFACE_SIZE,
+                 center = [0.0, constants.GROUND_LEVEL, 0.0], 
+                 normal = Vector('e_y'),
                  surfaceColor = constants.SURFACE_COLOR,
                  lineColor = constants.LINE_COLOR):
         self._surfaceColor = surfaceColor
         self._lineColor = lineColor
-        self._size = size
-        self._normal = Vector('e_y') # TODO: Make more generic
+        self._length = length       # (if normal is 'e_y', this is size in z-direction)
+        self._width = width         # (if normal is 'e_y', this is size in x-direction)
+        self._normal = normal
+        if self._normal.norm() != 1.0:
+            if self._normal.norm() == 0.0:
+                raise Exception('The normal cannot be a zero vector!')
+            self._normal = self._normal.normalize()
+        self._center = center
+        # The direction in which the "length will be drawn"
+        lengthDir = Vector('e_x').cross(self._normal) 
+        if lengthDir.get_value() == 0: # The normal is parallell to 'e_x'
+            lengthDir = Vector('e_z')
+        # The direction in which the "width will be drawn"        
+        widthDir = self._normal.cross(Vector('e_z'))
+        if lengthDir.get_value() == 0: # The normal is parallell to 'e_z'
+            widthDir = Vector('e_x')
+
+        # The "absolute value of the length-position of the points"
+        lengthPos = lengthDir.v_mult(self._length)
+        # The "absolute value of the width-position of the points"
+        widthPos = widthDir.v_mult(self._width)
+        
+        self._points = [lengthPos.v_mult(-1.0).v_add(widthPos.v_mult(-1.0)).get_value(),
+                        lengthPos.v_mult(-1.0).v_add(widthPos).get_value(),
+                        lengthPos.v_add(widthPos).get_value(),
+                        lengthPos.v_add(widthPos.v_mult(-1.0)).get_value()]
         super(Surface, self).__init__()
 
-        self.set_yPos(yPos - 1.0)
+        self.set_xPos(self._center[0])
+        self.set_yPos(self._center[1])
+        self.set_zPos(self._center[2])
+
+        self._edges = [[self._points[0], self._points[1]],
+                       [self._points[1], self._points[2]],
+                       [self._points[2], self._points[3]],
+                       [self._points[3], self._points[0]]]
+                       
 
     def draw_shape(self):
         glBegin(GL_QUADS)
         glColor3fv(self._surfaceColor)
         glNormal3fv(self._normal.get_value())
-        glVertex3f(-self._size, 0.0, -self._size)
-        glVertex3f(self._size, 0.0, -self._size)
-        glVertex3f(self._size, 0.0, self._size)
-        glVertex3f(-self._size, 0.0, self._size)
+        for point in self._points:
+            glVertex3fv(point)
         glEnd()   
         
 
@@ -141,6 +173,8 @@ class MovingShape(Shape):
         # Falling variables
         self._falling = False
         self._fallTime = 0
+
+        self.set_yPos(self.get_border_distance())
 
     def move(self, directions):
         ''' Move around in 3D space using the keyboard.
@@ -200,8 +234,8 @@ class MovingShape(Shape):
 
             # The sphere touches ground: set on right height, stop falling,
             # stop jumping, reset falltime
-        if self._yPos < constants.GROUND_LEVEL:
-            self._yPos = constants.GROUND_LEVEL
+        if self._yPos < constants.GROUND_LEVEL + self.get_border_distance():
+            self._yPos = constants.GROUND_LEVEL + self.get_border_distance()
             self.reset_jump_and_fall()
 
             # The sphere should fall: make it keep falling
@@ -248,7 +282,8 @@ class MovingShape(Shape):
                 # The sphere is on top of the cube, don't fall through
             if side == cube._upNormal:
                 self.reset_jump_and_fall()
-                self._yPos = sideLength
+                self._yPos = cube.get_yPos() + cube.get_border_distance() \
+                             + self.get_border_distance()
                 return True, side
                 
                 # The sphere collides with another side of the cube,
@@ -459,6 +494,9 @@ class Sphere(RotatingShape):
         cube.move(side.v_mult(-1.0).get_value())
         self._velocity = self._velocity.v_add(side.v_mult(cube.get_speed()))
 
+    def get_border_distance(self):
+        return self._radius
+
     def get_radius(self):
         return self._radius
 
@@ -556,6 +594,9 @@ class Cube(MovingShape):
     def get_side_length(self):
         ''' Returns the side length of the cube '''
         return self._side
+
+    def get_border_distance(self):
+        return self._side / 2.0
 
     def get_normals(self):
         ''' Returns the normals of the cube's sides '''
