@@ -51,26 +51,6 @@ class Shape(object):
         draws the object.'''
         self.draw()
 
-    # TODO: Maybe move to Vector instead?
-    def get_distance_shape(self, shape2):
-        ''' Returns the distance between the positions of
-            self and shape2 as a vector '''
-        return Vector([shape2._xPos - self._xPos,
-                       shape2._yPos - self._yPos,
-                       shape2._zPos - self._zPos])
-
-    # TODO: Maybe move to Vector instead?
-    def get_distance_point(self, point):
-        ''' Returns the distance between the position of the shape
-            and a point as a vector '''
-        if point.__class__.__name__ == 'Vector':
-            p = point.get_value()
-        else:
-            p = point
-        return Vector([p[0] - self._xPos,
-                       p[1] - self._yPos,
-                       p[2] - self._zPos])
-
     # External getters and setters for
     # the instance variables.
 
@@ -94,6 +74,12 @@ class Shape(object):
 
     def get_color(self):
         return self._color
+
+    def get_center(self):
+        return [self._xPos, self._yPos, self._zPos]
+
+    def set_center(self, center):
+        self._xPos, self.yPos, self._zPos = center[0], center[1], center[2]
 
 class Surface(Shape):
     ''' Defines a surface '''
@@ -153,7 +139,15 @@ class Surface(Shape):
         for point in self._points:
             glVertex3fv(point)
         glEnd()   
-        
+
+    def get_points(self):
+        return self._points
+
+    def get_edges(self):
+        return self._edges
+
+    def get_normal(self):
+        return self._normal
 
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
@@ -249,6 +243,27 @@ class MovingShape(Shape):
             # The sphere shouldn't fall, reset falltime
         else:
             self.reset_jump_and_fall()
+
+    def collide(self, surface):
+        ''' Checks if the shape has collided with the surface.
+            If it has, return True, else return False. '''
+        points = surface.get_points()
+        normal = surface.get_normal()
+        edgeVector1 = points[0].distance_vector(points[1])
+        edgeVector2 = points[1].distance_vector(points[2])
+        width = edgeVector1.norm()
+        length = edgeVector2.norm()
+        edgeVector1 = edgeVector1.normalize()
+        edgeVector2 = edgeVector2.normalize()
+        distance = Vector(self.get_center).distance_vector(Vector(surface.get_center))
+
+        if abs(distance.dot(edgeVector1)) < width / 2.0 \
+           and abs(distance.dot(edgeVector2)) < length / 2.0 \
+           and abs(distance.dot(normal)) <= self.get_border_distance():
+            return True
+        else:
+            return False
+        
 
     def collide_cube(self, cube):
         ''' Checks if the shape has collided with the cube.

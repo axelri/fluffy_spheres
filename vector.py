@@ -104,4 +104,11 @@ class Vector:
         out = proj1.v_add(proj2)
 
         return out
-    
+
+    def distance_vector(self, point):
+        ''' Returns a vector from self to point '''
+        p = point.get_value()
+        s = self._value
+        return Vector([p[0] - s[0],
+                       p[1] - s[1],
+                       p[2] - s[2]])
