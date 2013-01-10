@@ -259,7 +259,8 @@ class MovingShape(Shape):
 
         if abs(distance.dot(edgeVector1)) < width / 2.0 \
            and abs(distance.dot(edgeVector2)) < length / 2.0 \
-           and abs(distance.dot(normal)) <= self.get_border_distance():
+           and abs(distance.dot(normal)) <= self.get_border_distance() \
+           + self._velocity.dot(normal).norm():
             return True
         else:
             return False
