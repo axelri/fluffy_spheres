@@ -157,16 +157,12 @@ class MovingShape(Shape):
         super(MovingShape, self).__init__()
 
         # Direction and speed
-        self._velocity = Vector([0.0, 0.0, 0.0])    
+        self._velocity = Vector()    
         self._speed = 0
 
         # Jumping variables
         self._jumping = False
         self._jumpSpeed = 0
-
-        # Falling variables
-        self._falling = False
-        self._fallTime = 0
 
         self.set_yPos(self.get_border_distance())
 
@@ -180,7 +176,7 @@ class MovingShape(Shape):
         yDir = directions[1]
         zDir = directions[2]
 
-        # Compute the new position of the sphere
+        # Compute the new position of the shape
         xVel = xDir * self._speed
         yVel = yDir * self._speed
         zVel = zDir * self._speed
@@ -193,62 +189,15 @@ class MovingShape(Shape):
         ''' Is called to make the shape jump, sets self._jumping to True '''
         # NOTE: The object must also be falling in order to return to ground;
         # for the sphere this is fixed by check_fall()
-        self._jumping = True
-        self.fall()
 
-    def update_jump(self):
-        ''' Checks if the shape should jump, if so makes it continue along the
-        jumping parabola '''
-        # TODO: Small bounce after jump?
-        # NOTE: An involuntary "small bounce" now occurs after a jump because
-        # the sphere gets to far down. We can change this, do we want to?
-        if self._jumping:
+        if not self._jumping:
             self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed \
                                                           / constants.SLOW_DOWN, 0]))
+            self._jumping = True
 
-    def fall(self):
-        ''' Makes the shape fall. '''
-        self._falling = True
-
-    def reset_jump_and_fall(self):
-        ''' Makes the shape stop jumping and falling, resets fallTime '''
-        if self._jumping:
-            self._jumping = False
-        if self._falling:
-            self._falling = False
-            self._fallTime = 0
-
-    def reset_falltime(self):
-        ''' Resets fallTime '''
-        self._fallTime = 0
-
-
-    def update_fall(self):
-        ''' Checks if the shape should fall, if so makes it fall.
-            If it touches ground, stop falling. '''
-        # TODO: The sphere "falls" even though it is held up by the edges
-        # of two edges, making it behave unpredictably instead of just lying
-        # as it should. Also, when rolling over edges, it falls to fast.
-        # Both these problems are because fallTime and velocity increases
-        # as if it was falling freely even though it is not. Should be fixed.
-
-            # The sphere touches ground: set on right height, stop falling,
-            # stop jumping, reset falltime
-        #if self._yPos < constants.GROUND_LEVEL + self.get_border_distance():
-        #    self._yPos = constants.GROUND_LEVEL + self.get_border_distance()
-        #   self.reset_jump_and_fall()
-
-            # The sphere should fall: make it keep falling
-        if self._falling:
-            self._fallTime += 1.0
-            self._velocity = self._velocity.\
-                             v_add(Vector([0.0, - self._fallTime * \
-                                           constants.GRAVITY / constants.SLOW_DOWN,
-                                                          0.0]))
-
-            # The sphere shouldn't fall, reset falltime
-        else:
-            self.reset_jump_and_fall()
+    def reset_jump(self):
+        ''' Resets jumping to False '''
+        self._jumping = False
 
     def collide(self, surface):
         ''' Checks if the shape has collided with the surface.
@@ -267,7 +216,7 @@ class MovingShape(Shape):
            and abs(distance.dot(edgeVector2)) < length / 2.0 \
            and abs(distance.dot(normal)) <= self.get_border_distance() \
            + abs(self._velocity.dot(normal)):
-            return True
+            return normal
         else:
             return False
         
@@ -318,22 +267,17 @@ class MovingShape(Shape):
         else:
             return False, side
 
-    def check_fall(self, cube, side):
-        ''' Checks if the shape should be falling (is in the air and not
-            on top of the cube). If so, fall. '''
-        # TODO: Check for collision with Surface object rather than ground level.
-        if self._yPos > constants.GROUND_LEVEL and side != cube._upNormal:
-                self.fall()
 
     # External getters and setters for
     # the instance variables.
 
     def get_jump_height(self):
         return (self._jumpSpeed * self._maxJumpTime / 2 -
-                constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) / 1000.0
+                constants.GRAVITY / 2 * (self._maxJumpTime / 2)**2) \
+                / constants.SLOW_DOWN
 
     def set_jump_height(self, height):
-        self._jumpSpeed = (height * 2000.0 + constants.GRAVITY * 
+        self._jumpSpeed = (height * 2 * constants.SLOW_DOWN + constants.GRAVITY * 
                 (self._maxJumpTime / 2)**2) / self._maxJumpTime
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
@@ -368,14 +312,32 @@ class RotatingShape(MovingShape):
         # Compute the new position of the sphere
         xVel = xDir * self._speed
         zVel = zDir * self._speed
+        direction = Vector([xVel, 0.0, zVel])
 
-        # Calculate the direction the shape moves in
-        self._velocity = Vector([xVel, 0.0, zVel])
+        acceleration = constants.GRAV_ACC
+
+        for surface in surfaceList:
+            normal = self.collide(surface)
+            if normal:
+                acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
+                if self._velocity.dot(normal) < 0.0:
+                    self.reset_jump()
+                    acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
+
+
+        self._velocity = self._velocity.v_add(acceleration)
+
+                # Calculate new position
+        movement = self._velocity.v_add(direction).get_value()
+        self._xPos += movement[0]
+        self._yPos += movement[1]
+        self._zPos += movement[2]
+
         # Angle of the rotation that will be executed, in radians
         # TODO: Make _rotation and _rotationAxis local variables
-        self._rotation = self._velocity.norm() / self._radius
 
-        self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(self._velocity)
+        self._rotation = direction.norm() / self._radius
+        self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(direction)
         
         # NOTE: The vector [0,1,0] should really be the normal
         # of the surface in the contact point, but that
@@ -386,22 +348,6 @@ class RotatingShape(MovingShape):
         rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
         self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
 
-        # Update velocity in y-direction
-        self.update_jump()
-        self.update_fall()
-        
-        # Check if there was a collision with cube
-        #for cube in cubelist:
-        #    self.check_collision(cube)
-
-        for surface in surfaceList:
-            self.check_surf_collision(surface)
-
-        # Calculate new position
-        Vel = self._velocity.get_value()
-        self._xPos += Vel[0]
-        self._yPos += Vel[1]
-        self._zPos += Vel[2]
 
     def translate_and_rotate(self):
         ''' Translates and rotates the shape to the current position '''

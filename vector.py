@@ -2,7 +2,7 @@ from math import *
 class Vector:
     ''' A vector class to simplify calculations on vectors '''
     
-    def __init__(self, value):
+    def __init__(self, value = [0.0, 0.0, 0.0]):
         # Shorter calls for vectors we use a lot
         if value == 'e_x':
             self._value = [1.0, 0.0, 0.0]

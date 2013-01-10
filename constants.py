@@ -1,8 +1,12 @@
 from pygame.locals import *
-
+from vector import Vector
 ### World physics constants ###
-GRAVITY = 10.0
+# TODO: Make SLOW_DOWN relative to frame rate?
+# Then movements would become independent of frame rate.
 SLOW_DOWN = 1000.0
+GRAVITY = 10.0
+GRAV_ACC = Vector([ 0.0, - GRAVITY / SLOW_DOWN, 0.0])
+
 
 ### Surface constants ###
 SURFACE_COLOR = [0.5, 0.0, 1.0]
