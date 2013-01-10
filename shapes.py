@@ -166,24 +166,39 @@ class MovingShape(Shape):
 
         self.set_yPos(self.get_border_distance())
 
-    def move(self, directions):
+    def move(self, directions, surfaceList):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X , Y and Z axis directions.
         Directions must be either 1, -1 or 0.'''
 
-        # Set directions
         xDir = directions[0]
         yDir = directions[1]
         zDir = directions[2]
 
-        # Compute the new position of the shape
+        # Compute the new position of the sphere
         xVel = xDir * self._speed
         yVel = yDir * self._speed
         zVel = zDir * self._speed
-        self._xPos += xVel
-        self._yPos += yVel
-        self._zPos += zVel
-        self._velocity = Vector([xVel, yVel, zVel])
+        direction = Vector([xVel, yVel, zVel])
+
+        acceleration = constants.GRAV_ACC
+
+        for surface in surfaceList:
+            normal = self.collide(surface)
+            if normal:
+                acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
+                if self._velocity.dot(normal) < 0.0:
+                    self.reset_jump()
+                    acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
+
+
+        self._velocity = self._velocity.v_add(acceleration)
+
+                # Calculate new position
+        movement = self._velocity.v_add(direction).get_value()
+        self._xPos += movement[0]
+        self._yPos += movement[1]
+        self._zPos += movement[2]
 
     def jump(self):
         ''' Is called to make the shape jump, sets self._jumping to True '''
@@ -302,37 +317,17 @@ class RotatingShape(MovingShape):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
-
-        # TODO: should probably use super instead, but
-        # the local variables make it hard.
-        # Set directions
         xDir = directions[0]
+        yDir = directions[1]
         zDir = directions[2]
 
         # Compute the new position of the sphere
         xVel = xDir * self._speed
+        yVel = yDir * self._speed
         zVel = zDir * self._speed
-        direction = Vector([xVel, 0.0, zVel])
+        direction = Vector([xVel, yVel, zVel])
 
-        acceleration = constants.GRAV_ACC
-
-        for surface in surfaceList:
-            normal = self.collide(surface)
-            if normal:
-                acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
-                if self._velocity.dot(normal) < 0.0:
-                    self.reset_jump()
-                    acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
-
-
-        self._velocity = self._velocity.v_add(acceleration)
-
-                # Calculate new position
-        movement = self._velocity.v_add(direction).get_value()
-        self._xPos += movement[0]
-        self._yPos += movement[1]
-        self._zPos += movement[2]
-
+        super(RotatingShape, self).move(directions, surfaceList)
         # Angle of the rotation that will be executed, in radians
         # TODO: Make _rotation and _rotationAxis local variables
 
