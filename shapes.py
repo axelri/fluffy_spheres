@@ -118,11 +118,11 @@ class Surface(Shape):
         self._center = center
         # The direction in which the "length will be drawn"
         lengthDir = Vector('e_x').cross(self._normal) 
-        if lengthDir.get_value() == 0: # The normal is parallell to 'e_x'
+        if lengthDir.norm() == 0.0: # The normal is parallell to 'e_x'
             lengthDir = Vector('e_z')
         # The direction in which the "width will be drawn"        
         widthDir = self._normal.cross(Vector('e_z'))
-        if lengthDir.get_value() == 0: # The normal is parallell to 'e_z'
+        if widthDir.norm() == 0.0: # The normal is parallell to 'e_z'
             widthDir = Vector('e_x')
 
         # The "absolute value of the length-position of the points"
