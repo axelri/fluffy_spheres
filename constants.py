@@ -13,6 +13,7 @@ SURFACE_COLOR = [0.5, 0.0, 1.0]
 LINE_COLOR = [0.0, 0.0, 0.0]
 SURFACE_SIZE = 10
 GROUND_LEVEL = 0.0
+FRICTION = 0.1
 
 #### Sphere constants ####
 SPHERE_COLOR = [0.5, 1.0, 0.0]

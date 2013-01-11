@@ -81,6 +81,11 @@ class Shape(object):
     def set_center(self, center):
         self._xPos, self.yPos, self._zPos = center[0], center[1], center[2]
 
+    def move_center(self, movement):
+        self._xPos += movement[0]
+        self._yPos += movement[1]
+        self._zPos += movement[2]
+
 class Surface(Shape):
     ''' Defines a surface '''
     def __init__(self, length = constants.SURFACE_SIZE,
@@ -88,12 +93,14 @@ class Surface(Shape):
                  center = [0.0, constants.GROUND_LEVEL, 0.0], 
                  normal = Vector('e_y'),
                  surfaceColor = constants.SURFACE_COLOR,
-                 lineColor = constants.LINE_COLOR):
+                 lineColor = constants.LINE_COLOR,
+                 friction = constants.FRICTION):
         self._surfaceColor = surfaceColor
         self._lineColor = lineColor
         self._length = length       # (if normal is 'e_y', this is size in z-direction)
         self._width = width         # (if normal is 'e_y', this is size in x-direction)
         self._normal = normal
+        self._friction = friction
         if self._normal.norm() != 1.0:
             if self._normal.norm() == 0.0:
                 raise Exception('The normal cannot be a zero vector!')
@@ -152,6 +159,9 @@ class Surface(Shape):
     def get_size(self):
         return [self._length, self._width]
 
+    def get_friction(self):
+        return self._friction
+
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
     # TODO: Add collide_surface()? That way we can check for collision
@@ -174,17 +184,14 @@ class MovingShape(Shape):
         Takes an array containing X , Y and Z axis directions.
         Directions must be either 1, -1 or 0.'''
 
-        xDir = directions[0]
-        yDir = directions[1]
-        zDir = directions[2]
+        direction = Vector(directions)
 
-        # Compute the new position of the sphere
-        xVel = xDir * self._speed
-        yVel = yDir * self._speed
-        zVel = zDir * self._speed
-        direction = Vector([xVel, yVel, zVel])
+        if direction.norm():
+            direction = direction.normalize().v_mult(self._speed)
 
         acceleration = constants.GRAV_ACC
+
+        #self._velocity = self._velocity.v_add(direction)
 
         for surface in surfaceList:
             acceleration = self.check_collision(surface, acceleration)
@@ -193,9 +200,12 @@ class MovingShape(Shape):
 
                 # Calculate new position
         movement = self._velocity.v_add(direction).get_value()
+        #movement = self._velocity.get_value()
         self._xPos += movement[0]
         self._yPos += movement[1]
         self._zPos += movement[2]
+
+        #self._velocity = self._velocity.v_add(direction.v_mult(-1.0))
 
     def jump(self):
         ''' Is called to make the shape jump. If self._jumping is False
@@ -214,30 +224,29 @@ class MovingShape(Shape):
     def collide(self, surface):
         ''' Checks if the shape has collided with the surface.
             If it has, return True, else return False. '''
-        # TODO: Make it "nicer", look at collide_edge() in Sphere
         points = surface.get_points()
-        normal = surface.get_normal()
-        edgeVector1 = Vector(points[0]).distance_vector(Vector(points[1]))
-        edgeVector2 = Vector(points[1]).distance_vector(Vector(points[2]))
-        width = edgeVector1.norm()
-        length = edgeVector2.norm()
-        edgeVector1 = edgeVector1.normalize()
-        edgeVector2 = edgeVector2.normalize()
+
+        surfaceVectors = surface.get_surface_vectors()
+        normal = surfaceVectors[1]
+        size = surface.get_size()
+
         distance = Vector(self.get_center()).distance_vector(Vector(surface.get_center()))
 
-        if abs(distance.dot(edgeVector1)) < width / 2.0 \
-           and abs(distance.dot(edgeVector2)) < length / 2.0 \
+        if abs(distance.dot(surfaceVectors[0])) < size[1]  \
+           and abs(distance.dot(surfaceVectors[2])) < size[0]  \
            and abs(distance.dot(normal)) <= self.get_border_distance() \
            + abs(self._velocity.dot(normal)):
-            return normal
+            return normal, distance
         else:
-            return False
+            return False, distance
+
 
     def check_collision(self, surface, acceleration):
         # TODO: func doc
-        normal = self.collide(surface)
+        normal, distance = self.collide(surface)
         if normal:
             acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
+            self._velocity = self._velocity.v_add(self._velocity.v_mult(-surface.get_friction()))
             if self._velocity.dot(normal) < 0.0:
                 self.reset_jump()
                 acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
@@ -341,20 +350,17 @@ class Sphere(RotatingShape):
             from the center of the sphere to the edge, projected on
             the corresponding plane (this represents the "normal"
             of the edge).'''
-        normal1 = super(Sphere, self).collide(surface)
-        normal2 = self.collide_edge(surface)
+        normal1, distance1 = super(Sphere, self).collide(surface)
+        normal2, distance2 = self.collide_edge(surface)
         if normal1:
-            return normal1
+            return normal1, distance1
         elif normal2:
-            return normal2
+            return normal2, distance2
         else:
-            return False
+            return False, distance1
 
     def collide_edge(self, surface):
         ''' Checks if the sphere has collided with  '''
-        # TODO: Bug when gliding oven an edge; the sphere
-        # "falls around" the edge and keeps gliding underneath
-        # the surface...
         points = surface.get_points()
 
         surfaceVectors = surface.get_surface_vectors()
@@ -368,11 +374,12 @@ class Sphere(RotatingShape):
 
         for i in range(4):
             distance = Vector(self.get_center()).distance_vector(Vector(points[i]))\
-                       .proj_plane(normal, edgeVectors[i])
+                       .proj_plane(normal, edgeVectors[i]).v_mult(-1.0)
             if distance.norm() <= self.get_radius() and \
                abs(distance.dot(edgeVectors[(i+1)%4])) < size[(i+1)%2]/2:
-                return distance
-        return False
+                print "collided with edge:", distance.get_value()
+                return distance, distance
+        return False, distance
 
 
     def push(self, cube, side):

@@ -75,9 +75,28 @@ def init_main():
     #cubelist.append(cube3)
 
     # List of all surfaces to be used
-    surfList = []
-    surface = shapes.Surface()
-    surfList.append(surface)
+    surfaceList = []
+    bottomSurface = shapes.Surface()
+    surfaceList.append(bottomSurface)
+##    wall1 = shapes.Surface(width = 1.0,
+##                           center = [-SURFACE_SIZE, 1.0, 0.0],
+##                           normal = Vector('e_x'))
+##    wall2 = shapes.Surface(width = 1.0,
+##                           center = [SURFACE_SIZE, 1.0, 0.0],
+##                           normal = Vector('e_x').v_mult(-1.0))
+##    wall3 = shapes.Surface(length = 1.0,
+##                           center = [0.0, 1.0, -SURFACE_SIZE],
+##                           normal = Vector('e_z'))
+##    wall4 = shapes.Surface(length = 1.0,
+##                           center = [0.0, 1.0, SURFACE_SIZE],
+##                           normal = Vector('e_z').v_mult(-1.0))
+##
+##    surfaceList.append(wall1)
+##    surfaceList.append(wall2)
+##    surfaceList.append(wall3)
+##    surfaceList.append(wall4)
+
+
     
     # List of all the players currently playing
     players = []
@@ -92,4 +111,4 @@ def init_main():
     #cube2.set_zPos(-2)
     #cube3.set_zPos(2)
     
-    return playableShapes, players, cubelist, surfList, clock, camera
+    return playableShapes, players, cubelist, surfaceList, clock, camera
