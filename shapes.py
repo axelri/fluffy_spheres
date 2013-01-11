@@ -83,9 +83,6 @@ class Shape(object):
 
 class Surface(Shape):
     ''' Defines a surface '''
-    # TODO: Right now the surface is drawn at y = -1.0 instead of y = 0.
-    # This is because the center of the shapes are defined to be at y = 0
-    # instead of the bottom.
     def __init__(self, length = constants.SURFACE_SIZE,
                  width = constants.SURFACE_SIZE,
                  center = [0.0, constants.GROUND_LEVEL, 0.0], 
@@ -187,8 +184,6 @@ class MovingShape(Shape):
         zVel = zDir * self._speed
         direction = Vector([xVel, yVel, zVel])
 
-        #self._velocity = self._velocity.v_add(direction)
-
         acceleration = constants.GRAV_ACC
 
         for surface in surfaceList:
@@ -202,12 +197,10 @@ class MovingShape(Shape):
         self._yPos += movement[1]
         self._zPos += movement[2]
 
-        #self._velocity = self._velocity.v_add(direction.v_mult(-1.0))
-
     def jump(self):
-        ''' Is called to make the shape jump, sets self._jumping to True '''
-        # NOTE: The object must also be falling in order to return to ground;
-        # for the sphere this is fixed by check_fall()
+        ''' Is called to make the shape jump. If self._jumping is False
+            sets self._jumping to True and adds a velocity upwards to
+            self._velocity '''
 
         if not self._jumping:
             self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed \
@@ -221,6 +214,7 @@ class MovingShape(Shape):
     def collide(self, surface):
         ''' Checks if the shape has collided with the surface.
             If it has, return True, else return False. '''
+        # TODO: Make it "nicer", look at collide_edge() in Sphere
         points = surface.get_points()
         normal = surface.get_normal()
         edgeVector1 = Vector(points[0]).distance_vector(Vector(points[1]))
@@ -312,9 +306,7 @@ class RotatingShape(MovingShape):
 
     def translate_and_rotate(self):
         ''' Translates and rotates the shape to the current position '''
-        # Translate according to parent class
         super(RotatingShape, self).translate_and_rotate()
-        # Do rotation unique to the subclass
         glMultMatrixf(self._rotationMatrix)
 
 class Sphere(RotatingShape):
@@ -341,16 +333,6 @@ class Sphere(RotatingShape):
         # glutSolidSphere(self._radius, 10, 10)   # To look at rotation
         glutSolidSphere(self._radius, 10, 40)   # To look at rotation
         # glutWireTeapot(self._radius)
-
-    def get_abs_distance_edge(self, cube, edge):
-        ''' Returns the distance from the sphere to the center of the
-            closest one of the four edges (defined by edge) of the cube. '''
-        edge = edge.get_value()
-        sideLength = cube.get_side_length()
-        xDist = min([abs(edge[0] - self._xPos), abs(edge[0] - sideLength - self._xPos)])
-        yDist = min([abs(edge[1] - self._yPos), abs(edge[1] - sideLength - self._yPos)])
-        zDist = min([abs(edge[2] - self._zPos), abs(edge[2] - sideLength - self._zPos)])
-        return Vector([xDist, yDist, zDist])
 
     def collide(self, surface):
         ''' Checks if the sphere has collided with the surface,
@@ -470,29 +452,29 @@ class Cube(MovingShape):
         normal vector side '''
         cube2.move(side.v_mult(-1.0).get_value())
 
-    def collide_cube(self, cube2):
-        ''' Checks if the cube has collided with another cube.
-        If there was a collision, return the normal of the side that
-        the sphere collided with, else return False.
-        (Very specific, might need to get more general) '''
-
-        distance = self.get_distance_shape(cube2)
-
-        normals = cube2.get_normals()
-        sideLength = cube2.get_side_length()
-
-        for i in range(3):
-            if abs(distance.dot(normals[2*i])) < sideLength / 2 + self._side / 2 \
-               and abs(distance.dot(normals[2*(i+1)%len(normals)])) < sideLength / 2 + self._side / 2 \
-               and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
-               <= sideLength / 2 + self._side / 2:
-                # TODO: A little ugly, but seems to work OK, maybe change later.
-                if abs(self._velocity.cross(normals[2*(i+2)%len(normals)]).norm()) < 0.0001:
-                    # NOTE: Should be "...norm() == 0:", but I take rounding errors into account
-                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                        return normals[2*(i+2)%len(normals)]
-                    else:
-                        return normals[(2*(i+2)+1)%len(normals)]
+##    def collide_cube(self, cube2):
+##        ''' Checks if the cube has collided with another cube.
+##        If there was a collision, return the normal of the side that
+##        the sphere collided with, else return False.
+##        (Very specific, might need to get more general) '''
+##
+##        distance = self.get_distance_shape(cube2)
+##
+##        normals = cube2.get_normals()
+##        sideLength = cube2.get_side_length()
+##
+##        for i in range(3):
+##            if abs(distance.dot(normals[2*i])) < sideLength / 2 + self._side / 2 \
+##               and abs(distance.dot(normals[2*(i+1)%len(normals)])) < sideLength / 2 + self._side / 2 \
+##               and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
+##               <= sideLength / 2 + self._side / 2:
+##                # TODO: A little ugly, but seems to work OK, maybe change later.
+##                if abs(self._velocity.cross(normals[2*(i+2)%len(normals)]).norm()) < 0.0001:
+##                    # NOTE: Should be "...norm() == 0:", but I take rounding errors into account
+##                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
+##                        return normals[2*(i+2)%len(normals)]
+##                    else:
+##                        return normals[(2*(i+2)+1)%len(normals)]
 
     # Getters and setters
 
