@@ -97,7 +97,8 @@ def init_main():
     surfaceList.append(wall4)
 
     slope = shapes.Surface(normal = Vector([0.3, 1.0, 0.0]),
-                           center = [-2.0 * SURFACE_SIZE + 0.4, 4.9, 0.0])
+                           center = [-(SURFACE_SIZE + SURFACE_SIZE * 0.9553365),
+                                     2.0 + SURFACE_SIZE * 0.286601, 0.0])
     surfaceList.append(slope)
 
     
