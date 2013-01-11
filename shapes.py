@@ -79,7 +79,7 @@ class Shape(object):
         return [self._xPos, self._yPos, self._zPos]
 
     def set_center(self, center):
-        self._xPos, self.yPos, self._zPos = center[0], center[1], center[2]
+        self._xPos, self._yPos, self._zPos = center[0], center[1], center[2]
 
     def move_center(self, movement):
         self._xPos += movement[0]
@@ -126,9 +126,15 @@ class Surface(Shape):
                         lengthPos.v_add(widthPos.v_mult(-1.0)).get_value()]
         super(Surface, self).__init__()
 
-        self.set_xPos(self._center[0])
-        self.set_yPos(self._center[1])
-        self.set_zPos(self._center[2])
+
+        # TODO: Quite ugly solution, fix?
+        self._points = [Vector(self._points[0]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._points[1]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._points[2]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._points[3]).v_add(Vector(self._center)).get_value()]
+
+        self.set_center(self._center)
+
 
         self._edges = [[self._points[0], self._points[1]],
                        [self._points[1], self._points[2]],
@@ -164,8 +170,6 @@ class Surface(Shape):
 
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
-    # TODO: Add collide_surface()? That way we can check for collision
-    # with the ground, and also call that function in collide_cube.
     def __init__(self):
         super(MovingShape, self).__init__()
 
@@ -191,21 +195,25 @@ class MovingShape(Shape):
 
         acceleration = constants.GRAV_ACC
 
-        #self._velocity = self._velocity.v_add(direction)
-
+        currentFloor = Vector('e_y')
+        currentFloorDot = 0.0
         for surface in surfaceList:
-            acceleration = self.check_collision(surface, acceleration)
+            acceleration, normal = self.check_collision(surface, acceleration)
+            newFloorDot = normal.dot(Vector('e_y'))
+            if newFloorDot > currentFloorDot:
+                currentFloorDot = newFloorDot
+                currentFloor = normal
+
 
         self._velocity = self._velocity.v_add(acceleration)
 
                 # Calculate new position
         movement = self._velocity.v_add(direction).get_value()
-        #movement = self._velocity.get_value()
         self._xPos += movement[0]
         self._yPos += movement[1]
         self._zPos += movement[2]
 
-        #self._velocity = self._velocity.v_add(direction.v_mult(-1.0))
+        return currentFloor
 
     def jump(self):
         ''' Is called to make the shape jump. If self._jumping is False
@@ -236,9 +244,9 @@ class MovingShape(Shape):
            and abs(distance.dot(surfaceVectors[2])) < size[0]  \
            and abs(distance.dot(normal)) <= self.get_border_distance() \
            + abs(self._velocity.dot(normal)):
-            return normal, distance
+            return normal, normal.v_mult(distance.dot(normal))
         else:
-            return False, distance
+            return False, normal.v_mult(distance.dot(normal))
 
 
     def check_collision(self, surface, acceleration):
@@ -247,10 +255,14 @@ class MovingShape(Shape):
         if normal:
             acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
             self._velocity = self._velocity.v_add(self._velocity.v_mult(-surface.get_friction()))
+            if distance.norm() < self.get_border_distance():
+                self.move_center(normal.v_mult(self.get_border_distance()-distance.norm()).get_value())
             if self._velocity.dot(normal) < 0.0:
                 self.reset_jump()
                 acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
-        return acceleration
+        
+            return acceleration, normal
+        return acceleration, Vector()
 
     # External getters and setters for
     # the instance variables.
@@ -296,17 +308,12 @@ class RotatingShape(MovingShape):
         zVel = zDir * self._speed
         direction = Vector([xVel, yVel, zVel])
 
-        super(RotatingShape, self).move(directions, surfaceList)
+        normal = super(RotatingShape, self).move(directions, surfaceList)
         # Angle of the rotation that will be executed, in radians
         # TODO: Make _rotation and _rotationAxis local variables
 
         self._rotation = direction.norm() / self._radius
-        self._rotationAxis = Vector([0.0, 1.0, 0.0]).cross(direction)
-        
-        # NOTE: The vector [0,1,0] should really be the normal
-        # of the surface in the contact point, but that
-        # can be changed later if we want to make the sphere
-        # roll on other surfaces than a plain floor.
+        self._rotationAxis = normal.cross(direction)
         
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
@@ -377,8 +384,7 @@ class Sphere(RotatingShape):
                        .proj_plane(normal, edgeVectors[i]).v_mult(-1.0)
             if distance.norm() <= self.get_radius() and \
                abs(distance.dot(edgeVectors[(i+1)%4])) < size[(i+1)%2]/2:
-                print "collided with edge:", distance.get_value()
-                return distance, distance
+                return distance.normalize(), distance
         return False, distance
 
 

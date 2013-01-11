@@ -18,7 +18,7 @@ FRICTION = 0.1
 #### Sphere constants ####
 SPHERE_COLOR = [0.5, 1.0, 0.0]
 SPHERE_RADIUS = 1.0
-SPHERE_SPEED = 0.05
+SPHERE_SPEED = 0.07
 SPHERE_JUMP_SPEED = 300.0
 
 #### Cube constants ####

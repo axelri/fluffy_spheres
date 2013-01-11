@@ -78,24 +78,27 @@ def init_main():
     surfaceList = []
     bottomSurface = shapes.Surface()
     surfaceList.append(bottomSurface)
-##    wall1 = shapes.Surface(width = 1.0,
-##                           center = [-SURFACE_SIZE, 1.0, 0.0],
-##                           normal = Vector('e_x'))
-##    wall2 = shapes.Surface(width = 1.0,
-##                           center = [SURFACE_SIZE, 1.0, 0.0],
-##                           normal = Vector('e_x').v_mult(-1.0))
-##    wall3 = shapes.Surface(length = 1.0,
-##                           center = [0.0, 1.0, -SURFACE_SIZE],
-##                           normal = Vector('e_z'))
-##    wall4 = shapes.Surface(length = 1.0,
-##                           center = [0.0, 1.0, SURFACE_SIZE],
-##                           normal = Vector('e_z').v_mult(-1.0))
-##
-##    surfaceList.append(wall1)
-##    surfaceList.append(wall2)
-##    surfaceList.append(wall3)
-##    surfaceList.append(wall4)
+    wall1 = shapes.Surface(width = 1.0,
+                           center = [-SURFACE_SIZE, 1.0, 0.0],
+                           normal = Vector('e_x'))
+    wall2 = shapes.Surface(width = 1.0,
+                           center = [SURFACE_SIZE, 1.0, 0.0],
+                           normal = Vector('e_x').v_mult(-1.0))
+    wall3 = shapes.Surface(length = 1.0,
+                           center = [0.0, 1.0, -SURFACE_SIZE],
+                           normal = Vector('e_z'))
+    wall4 = shapes.Surface(length = 1.0,
+                           center = [0.0, 1.0, SURFACE_SIZE],
+                           normal = Vector('e_z').v_mult(-1.0))
 
+    surfaceList.append(wall1)
+    surfaceList.append(wall2)
+    surfaceList.append(wall3)
+    surfaceList.append(wall4)
+
+    slope = shapes.Surface(normal = Vector([0.3, 1.0, 0.0]),
+                           center = [-2.0 * SURFACE_SIZE + 0.4, 4.9, 0.0])
+    surfaceList.append(slope)
 
     
     # List of all the players currently playing
