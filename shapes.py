@@ -103,18 +103,18 @@ class Surface(Shape):
             self._normal = self._normal.normalize()
         self._center = center
         # The direction in which the "length will be drawn"
-        lengthDir = Vector('e_x').cross(self._normal) 
-        if lengthDir.norm() == 0.0: # The normal is parallell to 'e_x'
-            lengthDir = Vector('e_z')
+        self._lengthDir = Vector('e_x').cross(self._normal) 
+        if self._lengthDir.norm() == 0.0: # The normal is parallell to 'e_x'
+            self._lengthDir = Vector('e_z')
         # The direction in which the "width will be drawn"        
-        widthDir = self._normal.cross(Vector('e_z'))
-        if widthDir.norm() == 0.0: # The normal is parallell to 'e_z'
-            widthDir = Vector('e_x')
+        self._widthDir = self._normal.cross(Vector('e_z'))
+        if self._widthDir.norm() == 0.0: # The normal is parallell to 'e_z'
+            self._widthDir = Vector('e_x')
 
         # The "absolute value of the length-position of the points"
-        lengthPos = lengthDir.v_mult(self._length)
+        lengthPos = self._lengthDir.v_mult(self._length)
         # The "absolute value of the width-position of the points"
-        widthPos = widthDir.v_mult(self._width)
+        widthPos = self._widthDir.v_mult(self._width)
         
         self._points = [lengthPos.v_mult(-1.0).v_add(widthPos.v_mult(-1.0)).get_value(),
                         lengthPos.v_mult(-1.0).v_add(widthPos).get_value(),
@@ -149,6 +149,12 @@ class Surface(Shape):
     def get_normal(self):
         return self._normal
 
+    def get_surface_vectors(self):
+        return [self._widthDir, self._normal, self._lengthDir]
+
+    def get_size(self):
+        return [self._length, self._width]
+
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
     # TODO: Add collide_surface()? That way we can check for collision
@@ -181,6 +187,8 @@ class MovingShape(Shape):
         zVel = zDir * self._speed
         direction = Vector([xVel, yVel, zVel])
 
+        #self._velocity = self._velocity.v_add(direction)
+
         acceleration = constants.GRAV_ACC
 
         for surface in surfaceList:
@@ -193,6 +201,8 @@ class MovingShape(Shape):
         self._xPos += movement[0]
         self._yPos += movement[1]
         self._zPos += movement[2]
+
+        #self._velocity = self._velocity.v_add(direction.v_mult(-1.0))
 
     def jump(self):
         ''' Is called to make the shape jump, sets self._jumping to True '''
@@ -230,7 +240,7 @@ class MovingShape(Shape):
             return False
 
     def check_collision(self, surface, acceleration):
-        # TODO: func doc        
+        # TODO: func doc
         normal = self.collide(surface)
         if normal:
             acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
@@ -238,55 +248,6 @@ class MovingShape(Shape):
                 self.reset_jump()
                 acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
         return acceleration
-        
-        
-
-    def collide_cube(self, cube):
-        ''' Checks if the shape has collided with the cube.
-        If there was a collision, return the normal of the side that
-        the shape collided with, else return False. '''
-        distance = self.get_distance_shape(cube)
-
-        normals = cube.get_normals()
-        sideLength = cube.get_side_length()
-
-        for i in range(3):
-            if abs(distance.dot(normals[2*i])) <= sideLength / 2 \
-               and abs(distance.dot(normals[2*(i+1)%len(normals)])) <= sideLength / 2 \
-               and abs(distance.dot(normals[2*(i+2)%len(normals)])) \
-               <= sideLength / 2 + self._radius:
-                if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                    return normals[2*(i+2)%len(normals)]
-                else:
-                    return normals[(2*(i+2)+1)%len(normals)]
-        return False
-
-##    def check_collision(self, cube):
-##        ''' Checks if there has been a collision between the shape and a cube,
-##        defines what to do if so. '''
-##        distance = self.get_distance_shape(cube)
-##        side = self.collide_cube(cube)
-##        sideLength = cube.get_side_length()
-##        speed = self._velocity.norm()
-##        self.check_fall(cube, side)
-##        if side:
-##                # The sphere is on top of the cube, don't fall through
-##            if side == cube._upNormal:
-##                self.reset_jump_and_fall()
-##                self._yPos = cube.get_yPos() + cube.get_border_distance() \
-##                             + self.get_border_distance()
-##                return True, side
-##                
-##                # The sphere collides with another side of the cube,
-##                # push on that side
-##            elif side in cube.get_normals():
-##                self.push(cube, side)
-##                return True, side
-##            else:
-##                return False, side
-##        else:
-##            return False, side
-
 
     # External getters and setters for
     # the instance variables.
@@ -409,82 +370,28 @@ class Sphere(RotatingShape):
 
     def collide_edge(self, surface):
         ''' Checks if the sphere has collided with  '''
-        
+        # TODO: Bug when gliding oven an edge; the sphere
+        # "falls around" the edge and keeps gliding underneath
+        # the surface...
+        points = surface.get_points()
 
-    def collide_cube(self, cube):
-        ''' Checks if the sphere has collided with the cube.
-        If there was a collision, return the normal of the side that
-        the sphere collided with, else return False. If it collides with an
-        edge, return the distance vector from the center of the sphere
-        to the edge, projected on the corresponding plane (this represents
-        the "normal" of the edge).
-        (Very specific, might need to get more general) '''
-        # TODO: The movements around some edges are to jerky, fix.
-        # Also, I don't think it takes corners into account, and thus can fall
-        # through them
-        distance = self.get_distance_shape(cube)
+        surfaceVectors = surface.get_surface_vectors()
+        normal = surfaceVectors[1]
+        size = surface.get_size()
 
-        cubeEdges = cube.get_edges()
-        normals = cube.get_normals()
-        sideLength = cube.get_side_length()
+        edgeVectors = [surfaceVectors[2].v_mult(-1.0),
+                   surfaceVectors[0],
+                   surfaceVectors[2],
+                   surfaceVectors[0].v_mult(-1.0)]
 
-        unit_vectors = [[Vector('e_y'), Vector('e_z')],
-                        [Vector('e_x'), Vector('e_z')],
-                        [Vector('e_x'), Vector('e_y')]]
-
-        # Check if it touches one of the sides
-        side = super(Sphere, self).collide_cube(cube)
-        if side:
-            return side
-
-        # Check if it touches one of the edges
-                
-        for i in range(3):
-            # distance to the neareast of the four edges (in this loop)
-            # the edge is considered a line of infinite length
-            EdgeDistance = self.get_abs_distance_edge(cube, cubeEdges[4*i]).\
-                           proj_plane(unit_vectors[i][0], unit_vectors[i][1])
-            # if the outer border of Sphere is less than the distance...
-            # ...and the Sphere is on the ACTUAL edge
-            if abs(EdgeDistance.norm()) <= self._radius and \
-                abs(distance.dot(normals[2*i])) <= sideLength / 2:
-                # check all of the edges, return a the normal of the point
-                # in which the Sphere and the edge collide
-                if distance.dot(normals[2*(i+1)%len(normals)]) < 0:
-                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                        return self.get_distance_point(cubeEdges[4*i]).\
-                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
-                    else:
-                        return self.get_distance_point(cubeEdges[4*i+1]).\
-                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
-                else:
-                    if distance.dot(normals[2*(i+2)%len(normals)]) < 0:
-                        return self.get_distance_point(cubeEdges[4*i+2]).\
-                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])
-                    else:
-                        return self.get_distance_point(cubeEdges[4*i+3]).\
-                               proj_plane(unit_vectors[i][0], unit_vectors[i][1])                   
-
-        # The sphere doesn't touch the cube
+        for i in range(4):
+            distance = Vector(self.get_center()).distance_vector(Vector(points[i]))\
+                       .proj_plane(normal, edgeVectors[i])
+            if distance.norm() <= self.get_radius() and \
+               abs(distance.dot(edgeVectors[(i+1)%4])) < size[(i+1)%2]/2:
+                return distance
         return False
 
-    def check_surf_collision(self, surface):
-
-        if self.collide(surface):
-            self.reset_jump_and_fall()
-        else:
-            self.fall()
-
-##    def check_collision(self, cube):
-##        ''' Checks if there has been a collision between the sphere and a cube,
-##        defines what to do if so. '''
-##
-##        has_hit, side = super(Sphere, self).check_collision(cube)
-##
-##        speed = self._velocity.norm()
-##        if not has_hit:
-##            if side:
-##                self._velocity = self._velocity.v_add(side.v_mult(-speed))
 
     def push(self, cube, side):
         ''' Makes the sphere push the cube on the side of the cube defined by the
