@@ -118,26 +118,17 @@ class Surface(Shape):
         # The "absolute value of the width-position of the points"
         widthPos = self._widthDir.v_mult(self._width)
         
-        self._points = [lengthPos.v_mult(-1.0).v_add(widthPos.v_mult(-1.0)).get_value(),
+        self._initPoints = [lengthPos.v_mult(-1.0).v_add(widthPos.v_mult(-1.0)).get_value(),
                         lengthPos.v_mult(-1.0).v_add(widthPos).get_value(),
                         lengthPos.v_add(widthPos).get_value(),
                         lengthPos.v_add(widthPos.v_mult(-1.0)).get_value()]
+        self._points = self._initPoints
         super(Surface, self).__init__()
-
-
-        # TODO: Quite ugly solution, fix?
-        self._points = [Vector(self._points[0]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._points[1]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._points[2]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._points[3]).v_add(Vector(self._center)).get_value()]
 
         self.set_center(self._center)
 
-
-        self._edges = [[self._points[0], self._points[1]],
-                       [self._points[1], self._points[2]],
-                       [self._points[2], self._points[3]],
-                       [self._points[3], self._points[0]]]
+        # TODO: Quite ugly solution, fix?
+        self.update_points()
                        
 
     def draw_shape(self):
@@ -152,6 +143,19 @@ class Surface(Shape):
         for point in self._points:
             glVertex3fv(point)
         glEnd()   
+
+    def update_points(self):
+        # TODO: func doc
+        self._points = [Vector(self._initPoints[0]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._initPoints[1]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._initPoints[2]).v_add(Vector(self._center)).get_value(),
+                        Vector(self._initPoints[3]).v_add(Vector(self._center)).get_value()]
+
+        # TODO: Remove? Do we need them?
+        self._edges = [[self._points[0], self._points[1]],
+                       [self._points[1], self._points[2]],
+                       [self._points[2], self._points[3]],
+                       [self._points[3], self._points[0]]]        
 
     def get_points(self):
         return self._points
@@ -418,57 +422,105 @@ class Cube(MovingShape):
         self._jumpSpeed = constants.CUBE_JUMP_SPEED
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
-        # Normals to the sides of the cube, must be updated if we decide to
-        # rotate the cube, otherwise they are constant
-        self._rightNormal = Vector('e_x')
-        self._leftNormal = Vector('e_x').v_mult(-1.0)
-        self._upNormal = Vector('e_y')
-        self._downNormal = Vector('e_y').v_mult(-1.0)
-        self._frontNormal = Vector('e_z')
-        self._backNormal = Vector('e_z').v_mult(-1.0)
+        self._rightSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos + self._side / 2.0,
+                                               self._yPos,
+                                               self._zPos],
+                                     normal = Vector('e_x'),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+        self._leftSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos - self._side / 2.0,
+                                               self._yPos,
+                                               self._zPos],
+                                     normal = Vector('e_x').v_mult(-1.0),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+        self._upSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos,
+                                               self._yPos + self._side / 2.0,
+                                               self._zPos],
+                                     normal = Vector('e_y'),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+        self._downSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos,
+                                               self._yPos - self._side / 2.0,
+                                               self._zPos],
+                                     normal = Vector('e_y').v_mult(-1.0),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+        self._frontSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos,
+                                               self._yPos,
+                                               self._zPos + self._side / 2.0],
+                                     normal = Vector('e_z'),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+        self._backSurface = Surface(length = self._side,
+                                     width = self._side,
+                                     center = [self._xPos,
+                                               self._yPos,
+                                               self._zPos - self._side / 2.0],
+                                     normal = Vector('e_z').v_mult(-1.0),
+                                     color = [0.0, 0.0, 0.0, 0.0])
+
+        self._surfaces = [self._rightSurface,
+                          self._leftSurface,
+                          self._upSurface,
+                          self._downSurface,
+                          self._frontSurface,
+                          self._backSurface]
+
+        def update_surfaces(self):
+            ''' Updates the cubes surfaces so that they align with the cube. '''
+            for surface in self._surfaces:
+                surface.set_center(self._center)
+                surface.update_points()
+
 
         # Defines the edges of the cube for better collision
-        self.update_edges()
-
-    def update(self, cubelist):
-        # TODO: func doc
-        # NOTE: the order makes the cubes push one another in
-        # opposite directions, fix with surfaces, maybe
-        # an instance variable "beingPushed" that prevents
-        # the particular surface from pushing back
-        # OR make the cube with the highest velocity dominate the others =)
-        super(Cube, self).update()
-        self.update_edges()
-        for cube in cubelist:
-            if cube != self:
-                self.check_collision(cube)
-
-    def update_edges(self):
-        ''' Updates the edges of the cube '''
-        self._xyEdge1 = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
-        self._xyEdge2 = Vector([self._xPos + self._side/2, self._yPos - self._side/2, self._zPos])
-        self._xyEdge3 = Vector([self._xPos - self._side/2, self._yPos + self._side/2, self._zPos])
-        self._xyEdge4 = Vector([self._xPos - self._side/2, self._yPos - self._side/2, self._zPos])
-        
-        self._xzEdge1 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
-        self._xzEdge2 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
-        self._xzEdge3 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
-        self._xzEdge4 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
-        
-        self._yzEdge1 = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
-        self._yzEdge2 = Vector([self._xPos, self._yPos - self._side/2, self._zPos + self._side/2])
-        self._yzEdge3 = Vector([self._xPos, self._yPos + self._side/2, self._zPos - self._side/2])
-        self._yzEdge4 = Vector([self._xPos, self._yPos - self._side/2, self._zPos - self._side/2])
+##        self.update_edges()
+##        
+##    def update(self, cubelist):
+##        # TODO: func doc
+##        # NOTE: the order makes the cubes push one another in
+##        # opposite directions, fix with surfaces, maybe
+##        # an instance variable "beingPushed" that prevents
+##        # the particular surface from pushing back
+##        # OR make the cube with the highest velocity dominate the others =)
+##        super(Cube, self).update()
+##        self.update_edges()
+##        for cube in cubelist:
+##            if cube != self:
+##                self.check_collision(cube)
+##
+##    def update_edges(self):
+##        ''' Updates the edges of the cube '''
+##        self._xyEdge1 = Vector([self._xPos + self._side/2, self._yPos + self._side/2, self._zPos])
+##        self._xyEdge2 = Vector([self._xPos + self._side/2, self._yPos - self._side/2, self._zPos])
+##        self._xyEdge3 = Vector([self._xPos - self._side/2, self._yPos + self._side/2, self._zPos])
+##        self._xyEdge4 = Vector([self._xPos - self._side/2, self._yPos - self._side/2, self._zPos])
+##        
+##        self._xzEdge1 = Vector([self._xPos + self._side/2, self._yPos, self._zPos + self._side/2])
+##        self._xzEdge2 = Vector([self._xPos + self._side/2, self._yPos, self._zPos - self._side/2])
+##        self._xzEdge3 = Vector([self._xPos - self._side/2, self._yPos, self._zPos + self._side/2])
+##        self._xzEdge4 = Vector([self._xPos - self._side/2, self._yPos, self._zPos - self._side/2])
+##        
+##        self._yzEdge1 = Vector([self._xPos, self._yPos + self._side/2, self._zPos + self._side/2])
+##        self._yzEdge2 = Vector([self._xPos, self._yPos - self._side/2, self._zPos + self._side/2])
+##        self._yzEdge3 = Vector([self._xPos, self._yPos + self._side/2, self._zPos - self._side/2])
+##        self._yzEdge4 = Vector([self._xPos, self._yPos - self._side/2, self._zPos - self._side/2])
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''
         glColor3fv(self._color)
         glutSolidCube(self._side)
 
-    def push(self, cube2, side):
-        ''' Makes the sphere push the cube on the side of the cube defined by the
-        normal vector side '''
-        cube2.move(side.v_mult(-1.0).get_value())
+##    def push(self, cube2, side):
+##        ''' Makes the sphere push the cube on the side of the cube defined by the
+##        normal vector side '''
+##        cube2.move(side.v_mult(-1.0).get_value())
 
 ##    def collide_cube(self, cube2):
 ##        ''' Checks if the cube has collided with another cube.
@@ -503,14 +555,15 @@ class Cube(MovingShape):
     def get_border_distance(self):
         return self._side / 2.0
 
-    def get_normals(self):
-        ''' Returns the normals of the cube's sides '''
-        return [self._rightNormal, self._leftNormal,
-                         self._upNormal, self._downNormal,
-                         self._frontNormal, self._backNormal]
-        
-    def get_edges(self):
-        ''' Returns the edges of the cube '''
-        return [self._yzEdge1, self._yzEdge2, self._yzEdge3, self._yzEdge4,
-                self._xzEdge1, self._xzEdge2, self._xzEdge3, self._xzEdge4,
-                self._xyEdge1, self._xyEdge2, self._xyEdge3, self._xyEdge4]
+##    def get_normals(self):
+##        ''' Returns the normals of the cube's sides '''
+##        return [self._rightNormal, self._leftNormal,
+##                         self._upNormal, self._downNormal,
+##                         self._frontNormal, self._backNormal]
+##        
+##    def get_edges(self):
+##        ''' Returns the edges of the cube '''
+##        return [self._yzEdge1, self._yzEdge2, self._yzEdge3, self._yzEdge4,
+##                self._xzEdge1, self._xzEdge2, self._xzEdge3, self._xzEdge4,
+##                self._xyEdge1, self._xyEdge2, self._xyEdge3, self._xyEdge4]
+##

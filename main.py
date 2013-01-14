@@ -34,7 +34,7 @@ def main():
         for shape in playableShapes:
             shape.update(directions, surfaceList)
         for cube in cubeList:      
-            cube.update(cubeList, surfaceList)
+            cube.update([0.0, 0.0, 0.0], surfaceList)
         for surface in surfaceList:
             surface.update()
         pygame.display.flip()
