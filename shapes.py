@@ -190,11 +190,11 @@ class MovingShape(Shape):
 
         self.set_yPos(self.get_border_distance())
 
-    def move(self, directions, accelerationAndFloor):
+    def move(self, directions, *args):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X , Y and Z axis directions.
         Directions must be either 1, -1 or 0.'''
-        acceleration = accelerationAndFloor[0]
+        acceleration = args[0]
         direction = Vector(directions)
 
         if direction.norm():
@@ -222,13 +222,13 @@ class MovingShape(Shape):
                 currentFloorDot = newFloorDot
                 currentFloor = normal
 
-        return [acceleration, currentFloor]
+        return acceleration, currentFloor
 
     def update(self, directions, surfaceList):
         # TODO: func doc
         acceleration = constants.GRAV_ACC
-        accelerationAndFloor = self.collision_control(surfaceList, acceleration)
-        self.move(directions, accelerationAndFloor)
+        acceleration, floor = self.collision_control(surfaceList, acceleration)
+        self.move(directions, acceleration, floor)
         super(MovingShape, self).update()
     
 
@@ -308,14 +308,14 @@ class RotatingShape(MovingShape):
 
         super(RotatingShape, self).__init__()
 
-    def move(self, directions, accelerationAndFloor):
+    def move(self, directions, *args):
         # TODO: refactor first half to MovingShape
         # TODO: The rotation behaves strangely while falling, fix?
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
-        floor = accelerationAndFloor[1]
-        moveDir = super(RotatingShape, self).move(directions, accelerationAndFloor)
+        floor = args[1]
+        moveDir = super(RotatingShape, self).move(directions, *args)
 
         if self._jumping:
             moveDir = moveDir.proj_plane(Vector('e_x'), Vector('e_z'))
@@ -376,7 +376,7 @@ class Sphere(RotatingShape):
             return False, distance1
 
     def collide_edge(self, surface):
-        ''' Checks if the sphere has collided with  '''
+        ''' Checks if the sphere has collided with an edge '''
         points = surface.get_points()
 
         surfaceVectors = surface.get_surface_vectors()
@@ -396,6 +396,9 @@ class Sphere(RotatingShape):
                 return distance.normalize(), distance
         return False, distance
 
+    def collide_cube(self, cube):
+        # TODO: func doc
+        return
 
     def push(self, cube, side):
         ''' Makes the sphere push the cube on the side of the cube defined by the
