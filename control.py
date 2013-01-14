@@ -14,7 +14,7 @@ def check_user_action(players, cubelist, forwardVector, surfaceList):
     for event in currentEvents:
         if event.type == QUIT or \
             (event.type == KEYDOWN and event.key == K_ESCAPE):
-            return False
+            return False, Vector()
 
     # Check for movements
     keyState = pygame.key.get_pressed()
@@ -30,9 +30,8 @@ def check_user_action(players, cubelist, forwardVector, surfaceList):
                         player.get_move_forward_key(),
                         player.get_move_backward_key(), keyState,
                         forwardVector)
-        player.get_shape().move(directions, cubelist, surfaceList)
 
-    return True
+    return True, directions
 
 def get_user_directions(moveLeft, moveRight,
             moveForward, moveBackward, keyState, forwardVector):

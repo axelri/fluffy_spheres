@@ -183,17 +183,28 @@ class MovingShape(Shape):
 
         self.set_yPos(self.get_border_distance())
 
-    def move(self, directions, surfaceList):
+    def move(self, directions, accelerationAndFloor):
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X , Y and Z axis directions.
         Directions must be either 1, -1 or 0.'''
-
+        acceleration = accelerationAndFloor[0]
         direction = Vector(directions)
 
         if direction.norm():
             direction = direction.normalize().v_mult(self._speed)
 
-        acceleration = constants.GRAV_ACC
+        self._velocity = self._velocity.v_add(acceleration)
+
+                # Calculate new position
+        movementDir = self._velocity.v_add(direction)
+        movement = movementDir.get_value()
+        self._xPos += movement[0]
+        self._yPos += movement[1]
+        self._zPos += movement[2]
+        return movementDir
+
+    def collision_control(self, surfaceList, acceleration):
+        # TODO: func doc
 
         currentFloor = Vector('e_y')
         currentFloorDot = 0.0
@@ -204,16 +215,15 @@ class MovingShape(Shape):
                 currentFloorDot = newFloorDot
                 currentFloor = normal
 
+        return [acceleration, currentFloor]
 
-        self._velocity = self._velocity.v_add(acceleration)
-
-                # Calculate new position
-        movement = self._velocity.v_add(direction).get_value()
-        self._xPos += movement[0]
-        self._yPos += movement[1]
-        self._zPos += movement[2]
-
-        return currentFloor
+    def update(self, directions, surfaceList):
+        # TODO: func doc
+        acceleration = constants.GRAV_ACC
+        accelerationAndFloor = self.collision_control(surfaceList, acceleration)
+        self.move(directions, accelerationAndFloor)
+        super(MovingShape, self).update()
+    
 
     def jump(self):
         ''' Is called to make the shape jump. If self._jumping is False
@@ -293,27 +303,19 @@ class RotatingShape(MovingShape):
 
         super(RotatingShape, self).__init__()
 
-    def move(self, directions, cubelist, surfaceList):
+    def move(self, directions, accelerationAndFloor):
         # TODO: refactor first half to MovingShape
+        # TODO: The rotation behaves strangely while jumping, fix.
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
-        xDir = directions[0]
-        yDir = directions[1]
-        zDir = directions[2]
-
-        # Compute the new position of the sphere
-        xVel = xDir * self._speed
-        yVel = yDir * self._speed
-        zVel = zDir * self._speed
-        direction = Vector([xVel, yVel, zVel])
-
-        normal = super(RotatingShape, self).move(directions, surfaceList)
+        floor = accelerationAndFloor[1]
+        moveDir = super(RotatingShape, self).move(directions, accelerationAndFloor)
         # Angle of the rotation that will be executed, in radians
         # TODO: Make _rotation and _rotationAxis local variables
 
-        self._rotation = direction.norm() / self._radius
-        self._rotationAxis = normal.cross(direction)
+        self._rotation = moveDir.norm() / self._radius
+        self._rotationAxis = floor.cross(moveDir)
         
         # Generate a rotation matrix to describe the current rotation
         rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
