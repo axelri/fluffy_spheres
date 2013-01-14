@@ -92,11 +92,9 @@ class Surface(Shape):
                  width = constants.SURFACE_SIZE,
                  center = [0.0, constants.GROUND_LEVEL, 0.0], 
                  normal = Vector('e_y'),
-                 surfaceColor = constants.SURFACE_COLOR,
-                 lineColor = constants.LINE_COLOR,
+                 color = constants.SURFACE_COLOR,
                  friction = constants.FRICTION):
-        self._surfaceColor = surfaceColor
-        self._lineColor = lineColor
+        self._color = color
         self._length = length       # (if normal is 'e_y', this is size in z-direction)
         self._width = width         # (if normal is 'e_y', this is size in x-direction)
         self._normal = normal
@@ -144,10 +142,10 @@ class Surface(Shape):
 
     def draw_shape(self):
         glBegin(GL_QUADS)
-        if len(self._surfaceColor) == 3:
-            glColor3fv(self._surfaceColor)
-        elif len(self._surfaceColor) == 4:
-            glColor4fv(self._surfaceColor)
+        if len(self._color) == 3:
+            glColor3fv(self._color)
+        elif len(self._color) == 4:
+            glColor4fv(self._color)
         else:
             raise Exception('Invalid surface color: must be list of length 3 or 4.')
         glNormal3fv(self._normal.get_value())
@@ -302,28 +300,28 @@ class RotatingShape(MovingShape):
     ''' Defines a Shape that rotates while it moves.'''
     def __init__(self):
         # Stores the rotation matrix of the shape, initiates it as identity
-        self._rotation = 0.0
-        self._rotationAxis = Vector([0.0, 0.0, 0.0])
         self._rotationMatrix = matrix.identity()
 
         super(RotatingShape, self).__init__()
 
     def move(self, directions, accelerationAndFloor):
         # TODO: refactor first half to MovingShape
-        # TODO: The rotation behaves strangely while jumping, fix.
+        # TODO: The rotation behaves strangely while falling, fix?
         ''' Move around in 3D space using the keyboard.
         Takes an array containing X and Z axis directions.
         Directions must be either 1, -1 or 0.'''
         floor = accelerationAndFloor[1]
         moveDir = super(RotatingShape, self).move(directions, accelerationAndFloor)
-        # Angle of the rotation that will be executed, in radians
-        # TODO: Make _rotation and _rotationAxis local variables
 
-        self._rotation = moveDir.norm() / self._radius
-        self._rotationAxis = floor.cross(moveDir)
+        if self._jumping:
+            moveDir = moveDir.proj_plane(Vector('e_x'), Vector('e_z'))
+
+        # Angle of the rotation that will be executed, in radians
+        rotation = moveDir.norm() / self._radius
+        rotationAxis = floor.cross(moveDir)
         
         # Generate a rotation matrix to describe the current rotation
-        rot_matrix = matrix.generate_rotation_matrix(self._rotationAxis, self._rotation)
+        rot_matrix = matrix.generate_rotation_matrix(rotationAxis, rotation)
         self._rotationMatrix = matrix.matrix_mult(rot_matrix, self._rotationMatrix)
 
 
