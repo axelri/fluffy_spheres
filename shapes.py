@@ -144,7 +144,12 @@ class Surface(Shape):
 
     def draw_shape(self):
         glBegin(GL_QUADS)
-        glColor3fv(self._surfaceColor)
+        if len(self._surfaceColor) == 3:
+            glColor3fv(self._surfaceColor)
+        elif len(self._surfaceColor) == 4:
+            glColor4fv(self._surfaceColor)
+        else:
+            raise Exception('Invalid surface color: must be list of length 3 or 4.')
         glNormal3fv(self._normal.get_value())
         for point in self._points:
             glVertex3fv(point)

@@ -14,7 +14,7 @@ def check_user_action(players, cubelist, forwardVector, surfaceList):
     for event in currentEvents:
         if event.type == QUIT or \
             (event.type == KEYDOWN and event.key == K_ESCAPE):
-            return False, Vector()
+            return False, [0.0, 0.0, 0.0]
 
     # Check for movements
     keyState = pygame.key.get_pressed()

@@ -37,6 +37,8 @@ def init_window():
     glEnable(GL_LIGHT0)
     glEnable(GL_TEXTURE_2D)
     glEnable(GL_COLOR_MATERIAL)
+    glEnable (GL_BLEND)
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     glShadeModel(GL_SMOOTH)
     glDisable(GL_CULL_FACE)
