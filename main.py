@@ -32,9 +32,9 @@ def main():
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
-            shape.update(directions, surfaceList)
+            shape.update(surfaceList, directions)
         for cube in cubeList:      
-            cube.update([0.0, 0.0, 0.0], surfaceList)
+            cube.update(surfaceList)
         for surface in surfaceList:
             surface.update()
         pygame.display.flip()

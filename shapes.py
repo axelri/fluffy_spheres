@@ -223,7 +223,7 @@ class MovingShape(Shape):
 
         return acceleration, currentFloor
 
-    def update(self, directions, surfaceList):
+    def update(self, surfaceList, directions = [0.0, 0.0, 0.0]):
         ''' Checks for collision, then moves and draws the shape. '''
         acceleration = constants.GRAV_ACC
         acceleration, floor = self.collision_control(surfaceList, acceleration)
@@ -476,12 +476,16 @@ class Cube(MovingShape):
                           self._frontSurface,
                           self._backSurface]
 
-        def update_surfaces(self):
-            ''' Updates the cubes surfaces so that they align with the cube. '''
-            for surface in self._surfaces:
-                surface.set_center(self._center)
-                surface.update_points()
+    def update_surfaces(self):
+        ''' Updates the cubes surfaces so that they align with the cube. '''
+        for surface in self._surfaces:
+            surface.set_center(self.get_center())
+            surface.update_points()
 
+    def update(self, surfaceList):
+        ''' Checks for collision, moves and draws the cube. '''
+        self.update_surfaces()
+        super(Cube, self).update(surfaceList)
 
         # Defines the edges of the cube for better collision
 ##        self.update_edges()
