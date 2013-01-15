@@ -32,7 +32,7 @@ def main():
         # update the object, translate
         # and then draw it
         for shape in playableShapes:
-            shape.update(surfaceList, directions)
+            shape.update(surfaceList, cubeList, directions)
         for cube in cubeList:      
             cube.update(surfaceList)
         for surface in surfaceList:

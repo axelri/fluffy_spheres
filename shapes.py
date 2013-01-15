@@ -206,27 +206,32 @@ class MovingShape(Shape):
         self._zPos += movement[2]
         return movementDir
 
-    def collision_control(self, surfaceList, acceleration):
+    def collision_control(self, surfaceList, acceleration, currentFloor = Vector('e_y'),
+                          currentFloorDot = 0.0):
         ''' Checks if the shape has collided with the surfaces
             in surfaceList, returns the acceleration the shape
             is affected by and the normal of the "flooriest"
             surface it has collided with. '''
-
-        currentFloor = Vector('e_y')
-        currentFloorDot = 0.0
+        
         for surface in surfaceList:
             acceleration, normal = self.check_collision(surface, acceleration)
-            newFloorDot = normal.dot(Vector('e_y'))
-            if newFloorDot > currentFloorDot:
-                currentFloorDot = newFloorDot
-                currentFloor = normal
+            currentFloor, currentFloorDot = self.check_floor(normal, currentFloor, currentFloorDot)
 
         return acceleration, currentFloor
 
-    def update(self, surfaceList, directions = [0.0, 0.0, 0.0]):
+    def check_floor(self, normal, currentFloor, currentFloorDot):
+        newFloorDot = normal.dot(Vector('e_y'))
+        if newFloorDot > currentFloorDot:
+            currentFloorDot = newFloorDot
+            currentFloor = normal
+        return currentFloor, currentFloorDot
+
+    def update(self, surfaceList, directions = [0.0, 0.0, 0.0],
+               acceleration = constants.GRAV_ACC, currentFloor = Vector('e_y'),
+               currentFloorDot = 0.0):
         ''' Checks for collision, then moves and draws the shape. '''
-        acceleration = constants.GRAV_ACC
-        acceleration, floor = self.collision_control(surfaceList, acceleration)
+        acceleration, floor = self.collision_control(surfaceList, acceleration, currentFloor,
+                          currentFloorDot)
         self.move(directions, acceleration, floor)
         super(MovingShape, self).update()
     
@@ -271,6 +276,7 @@ class MovingShape(Shape):
             shape with. '''
         normal, distance = self.collide(surface)
         if normal:
+            #print "collided with", normal.get_value()
             acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
             self._velocity = self._velocity.v_add(self._velocity.v_mult(-surface.get_friction()))
             if distance.norm() < self.get_border_distance():
@@ -397,9 +403,33 @@ class Sphere(RotatingShape):
                 return distance.normalize(), distance
         return False, distance
 
-    def collide_cube(self, cube):
+    def collide_cube(self, cube, acceleration):
         # TODO: func doc
-        return
+        acceleration, currentFloor = self.collision_control(cube.get_surfaces(), acceleration)
+
+        
+##        for side in cube.get_surfaces():
+##            acceleration, normal = self.check_collision(side, acceleration)
+####            currentFloor, currentFloorDot = self.check_floor(normal, currentFloor, currentFloorDot)
+####            print "the acceleration is:", acceleration.get_value()
+####            if normal.norm() < 0.0:
+####                self.push(cube, normal)
+        return acceleration, currentFloor
+
+    def update(self, surfaceList, cubeList, directions = [0.0, 0.0, 0.0],
+               acceleration = constants.GRAV_ACC):
+        ''' Checks for collisions, updates position, draws sphere. '''
+##        currentCubeFloor = Vector('e_y')
+##        currentCubeFloorDot = 0.0
+##        for cube in cubeList:
+##            acceleration, cubeFloor = self.collide_cube(cube, acceleration)
+##            currentCubeFloor, currentCubeFloorDot = self.check_floor(cubeFloor,
+##                                                                     currentCubeFloor,
+##                                                                     currentCubeFloorDot)
+        super(Sphere, self).update(surfaceList, directions, acceleration)#, currentCubeFloor,
+                                   #currentCubeFloorDot)
+            
+
 
     def push(self, cube, side):
         ''' Makes the sphere push the cube on the side of the cube defined by the
@@ -426,48 +456,48 @@ class Cube(MovingShape):
         self._jumpSpeed = constants.CUBE_JUMP_SPEED
         self._maxJumpTime = self._jumpSpeed / (constants.GRAVITY / 2)
 
-        self._rightSurface = Surface(length = self._side,
-                                     width = self._side,
+        self._rightSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos + self._side / 2.0,
                                                self._yPos,
                                                self._zPos],
                                      normal = Vector('e_x'),
-                                     color = [0.0, 0.0, 0.0, 0.0])
-        self._leftSurface = Surface(length = self._side,
-                                     width = self._side,
+                                     color = [0.0, 1.0, 0.0, 0.5])
+        self._leftSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos - self._side / 2.0,
                                                self._yPos,
                                                self._zPos],
                                      normal = Vector('e_x').v_mult(-1.0),
-                                     color = [0.0, 0.0, 0.0, 0.0])
-        self._upSurface = Surface(length = self._side,
-                                     width = self._side,
+                                     color = [0.0, 1.0, 0.0, 0.5])
+        self._upSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos,
                                                self._yPos + self._side / 2.0,
                                                self._zPos],
                                      normal = Vector('e_y'),
-                                     color = [0.0, 0.0, 0.0, 0.0])
-        self._downSurface = Surface(length = self._side,
-                                     width = self._side,
+                                     color = [0.0, 1.0, 0.0, 0.5])
+        self._downSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos,
                                                self._yPos - self._side / 2.0,
                                                self._zPos],
                                      normal = Vector('e_y').v_mult(-1.0),
-                                     color = [0.0, 0.0, 0.0, 0.0])
-        self._frontSurface = Surface(length = self._side,
-                                     width = self._side,
+                                     color = [0.0, 1.0, 0.0, 0.5])
+        self._frontSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos,
                                                self._yPos,
                                                self._zPos + self._side / 2.0],
                                      normal = Vector('e_z'),
-                                     color = [0.0, 0.0, 0.0, 0.0])
-        self._backSurface = Surface(length = self._side,
-                                     width = self._side,
+                                     color = [0.0, 1.0, 0.0, 0.5])
+        self._backSurface = Surface(length = self._side / 2.0,
+                                     width = self._side / 2.0,
                                      center = [self._xPos,
                                                self._yPos,
                                                self._zPos - self._side / 2.0],
                                      normal = Vector('e_z').v_mult(-1.0),
-                                     color = [0.0, 0.0, 0.0, 0.0])
+                                     color = [0.0, 1.0, 0.0, 0.5])
 
         self._surfaces = [self._rightSurface,
                           self._leftSurface,
@@ -476,11 +506,18 @@ class Cube(MovingShape):
                           self._frontSurface,
                           self._backSurface]
 
+        for surface in self._surfaces:
+            print "Normal", surface.get_normal().get_value()
+            print "Points", surface.get_points(),'\n'
+
     def update_surfaces(self):
         ''' Updates the cubes surfaces so that they align with the cube. '''
         for surface in self._surfaces:
-            surface.set_center(self.get_center())
+            surface.set_center(Vector(self.get_center())\
+                               .v_add(surface.get_normal()\
+                                      .v_mult(self._side / 2.0)).get_value())
             surface.update_points()
+            surface.update()
 
     def update(self, surfaceList):
         ''' Checks for collision, moves and draws the cube. '''
@@ -562,6 +599,9 @@ class Cube(MovingShape):
 
     def get_border_distance(self):
         return self._side / 2.0
+
+    def get_surfaces(self):
+        return self._surfaces
 
 ##    def get_normals(self):
 ##        ''' Returns the normals of the cube's sides '''
