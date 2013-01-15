@@ -134,12 +134,7 @@ class Surface(Shape):
 
     def draw_shape(self):
         glBegin(GL_QUADS)
-        if len(self._color) == 3:
-            glColor3fv(self._color)
-        elif len(self._color) == 4:
-            glColor4fv(self._color)
-        else:
-            raise Exception('Invalid surface color: must be list of length 3 or 4.')
+        glColor4fv(self._color)
         glNormal3fv(self._normal.get_value())
         for point in self._points:
             glVertex3fv(point)
@@ -359,7 +354,7 @@ class Sphere(RotatingShape):
 
     def draw_shape(self):
         ''' The drawing routine for Sphere '''
-        glColor3fv(self._color)
+        glColor4fv(self._color)
         # glutSolidSphere(self._radius, 40, 40)  # For nicer looking sphere
         # glutSolidSphere(self._radius, 10, 10)   # To look at rotation
         glutSolidSphere(self._radius, 10, 40)   # To look at rotation
@@ -523,7 +518,7 @@ class Cube(MovingShape):
 
     def draw_shape(self):
         ''' The drawing routine for Cube. '''
-        glColor3fv(self._color)
+        glColor4fv(self._color)
         glutSolidCube(self._side)
 
 ##    def push(self, cube2, side):
