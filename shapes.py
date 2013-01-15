@@ -122,12 +122,13 @@ class Surface(Shape):
                         lengthPos.v_mult(-1.0).v_add(widthPos).get_value(),
                         lengthPos.v_add(widthPos).get_value(),
                         lengthPos.v_add(widthPos.v_mult(-1.0)).get_value()]
+
+        # TODO: Quite ugly solution, fix?
         self._points = self._initPoints
         super(Surface, self).__init__()
 
         self.set_center(self._center)
 
-        # TODO: Quite ugly solution, fix?
         self.update_points()
                        
 
@@ -145,7 +146,7 @@ class Surface(Shape):
         glEnd()   
 
     def update_points(self):
-        # TODO: func doc
+        ''' Updates the surfaces points to the current location of the surface '''
         self._points = [Vector(self._initPoints[0]).v_add(Vector(self._center)).get_value(),
                         Vector(self._initPoints[1]).v_add(Vector(self._center)).get_value(),
                         Vector(self._initPoints[2]).v_add(Vector(self._center)).get_value(),
@@ -211,7 +212,10 @@ class MovingShape(Shape):
         return movementDir
 
     def collision_control(self, surfaceList, acceleration):
-        # TODO: func doc
+        ''' Checks if the shape has collided with the surfaces
+            in surfaceList, returns the acceleration the shape
+            is affected by and the normal of the "flooriest"
+            surface it has collided with. '''
 
         currentFloor = Vector('e_y')
         currentFloorDot = 0.0
@@ -225,7 +229,7 @@ class MovingShape(Shape):
         return acceleration, currentFloor
 
     def update(self, directions, surfaceList):
-        # TODO: func doc
+        ''' Checks for collision, then moves and draws the shape. '''
         acceleration = constants.GRAV_ACC
         acceleration, floor = self.collision_control(surfaceList, acceleration)
         self.move(directions, acceleration, floor)
@@ -267,7 +271,9 @@ class MovingShape(Shape):
 
 
     def check_collision(self, surface, acceleration):
-        # TODO: func doc
+        ''' Checks if the shape has collided with the surface,
+            returns the acceleration the surface affects the
+            shape with. '''
         normal, distance = self.collide(surface)
         if normal:
             acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
