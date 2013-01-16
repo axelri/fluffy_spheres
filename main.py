@@ -33,8 +33,8 @@ def main():
         # and then draw it
         for shape in playableShapes:
             shape.update(surfaceList, cubeList, directions)
-        for cube in cubeList:      
-            cube.update(surfaceList)
+        #for cube in cubeList:      
+        #    cube.update(surfaceList)
         for surface in surfaceList:
             surface.update()
         pygame.display.flip()

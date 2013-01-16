@@ -506,10 +506,6 @@ class Cube(MovingShape):
                           self._frontSurface,
                           self._backSurface]
 
-        for surface in self._surfaces:
-            print "Normal", surface.get_normal().get_value()
-            print "Points", surface.get_points(),'\n'
-
     def update_surfaces(self):
         ''' Updates the cubes surfaces so that they align with the cube. '''
         for surface in self._surfaces:

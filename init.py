@@ -69,17 +69,17 @@ def init_main():
 
     # List of all cubes to be used
     cubelist = []
-    cube = shapes.Cube(color=[1.0, 0.0, 0.0, 1.0])
+    #cube = shapes.Cube(color=[1.0, 0.0, 0.0, 1.0])
    # cube2 = shapes.Cube(color=[0.0, 1.0, 0.0, 1.0])
    # cube3 = shapes.Cube(color=[0.0, 0.0, 1.0, 1.0])
-    cubelist.append(cube)
+    #cubelist.append(cube)
     #cubelist.append(cube2)
     #cubelist.append(cube3)
 
     # List of all surfaces to be used
     surfaceList = []
     bottomSurface = shapes.Surface()
-    surfaceList.append(bottomSurface)
+
     wall1 = shapes.Surface(width = 1.0,
                            center = [-SURFACE_SIZE, 1.0, 0.0],
                            normal = Vector('e_x'))
@@ -93,15 +93,29 @@ def init_main():
                            center = [0.0, 1.0, SURFACE_SIZE],
                            normal = Vector('e_z').v_mult(-1.0))
 
-    surfaceList.append(wall1)
-    surfaceList.append(wall2)
-    surfaceList.append(wall3)
-    surfaceList.append(wall4)
-
     slope = shapes.Surface(normal = Vector([0.3, 1.0, 0.0]),
                            center = [-(SURFACE_SIZE + SURFACE_SIZE * 0.9553365),
                                      2.0 + SURFACE_SIZE * 0.286601, 0.0])
-    surfaceList.append(slope)
+
+    cubefront = shapes.Surface(length = 1, width = 1,
+                               center = [0.0, 1.0, 1.0],
+                               normal = Vector('e_z'))
+    cubeback = shapes.Surface(length = 1, width = 1,
+                               center = [0.0, 1.0, -1.0],
+                               normal = Vector('e_z').v_mult(-1.0))
+    cubetop = shapes.Surface(length = 1, width = 1,
+                               center = [0.0, 2.0, 0.0],
+                               normal = Vector('e_y'))
+    cuberight = shapes.Surface(length = 1, width = 1,
+                               center = [1.0, 1.0, 0.0],
+                               normal = Vector('e_x'))
+    cubeleft = shapes.Surface(length = 1, width = 1,
+                               center = [-1.0, 1.0, 0.0],
+                               normal = Vector('e_x').v_mult(-1.0))
+
+    surfaceList.extend([bottomSurface, wall1, wall2, wall3, wall4, slope])
+    #surfaceList.extend(cube.get_surfaces())
+    surfaceList.extend([cubefront, cubeback, cubetop, cuberight, cubeleft])
 
     
     # List of all the players currently playing
