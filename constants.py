@@ -2,6 +2,7 @@ from pygame.locals import *
 from vector import Vector
 ### World physics constants ###
 # TODO: Make SLOW_DOWN relative to frame rate?
+# NOTE: Really great idea!
 # Then movements would become independent of frame rate.
 SLOW_DOWN = 1000.0
 GRAVITY = 10.0
@@ -28,6 +29,8 @@ CUBE_SPEED = 0.025
 CUBE_JUMP_SPEED = 300.0
 
 #### User input constants ####
+# TODO: At some point we would want these to be
+# interchangable at runtime
 DEFAULT_MOVE_LEFT_KEY = K_a
 DEFAULT_MOVE_RIGHT_KEY = K_d
 DEFAULT_MOVE_FORWARD_KEY = K_w

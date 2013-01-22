@@ -2,6 +2,11 @@
 # the clarity, it is too long... I suggest to have the abstract classes:
 # Shape, MovingShape and RotatingShape in one file, and the other ones:
 # Sphere, Surface and Cube in another. Any thoughts on that Axel?
+# TODO: Well, as long as we don't loose sight of what the classes are made 
+# of. Since we inherit lots and lots of both instance variables and methods,
+# we have to figure out a way to make those attributes easily examinated
+# during the debugging process. How that best is done remains to be
+# found out. Even more lots of coffee and all-nighters perhaps?
 
 from math import *
 import pygame

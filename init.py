@@ -80,6 +80,9 @@ def init_main():
     surfaceList = []
     bottomSurface = shapes.Surface()
 
+    # TODO: We should really try to seperate out these init methods.
+    # Refactor into smaller ones, and eventually script all this
+    # from some outside environment.
     wall1 = shapes.Surface(width = 1.0,
                            center = [-SURFACE_SIZE, 1.0, 0.0],
                            normal = Vector('e_x'))
