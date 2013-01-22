@@ -100,6 +100,11 @@ def init_main():
                            center = [-(SURFACE_SIZE + SURFACE_SIZE * 0.9553365),
                                      2.0 + SURFACE_SIZE * 0.286601, 0.0])
 
+    ground = shapes.Surface(length = 30, width = 30,
+                               center = [0.0, -3.0, 0.0],
+                               normal = Vector('e_y'),
+                            color = [0.0, 1.0, 0.0, 1.0])
+
     cubefront = shapes.Surface(length = 1, width = 1,
                                center = [0.0, 1.0, 1.0],
                                normal = Vector('e_z'))
@@ -116,9 +121,28 @@ def init_main():
                                center = [-1.0, 1.0, 0.0],
                                normal = Vector('e_x').v_mult(-1.0))
 
+
+    cube2front = shapes.Surface(length = 1, width = 1,
+                               center = [-15.0, -2.0, 1.0],
+                               normal = Vector('e_z'))
+    cube2back = shapes.Surface(length = 1, width = 1,
+                               center = [-15.0, -2.0, -1.0],
+                               normal = Vector('e_z').v_mult(-1.0))
+    cube2top = shapes.Surface(length = 1, width = 1,
+                               center = [-15.0, -1.0, 0.0],
+                               normal = Vector('e_y'))
+    cube2right = shapes.Surface(length = 1, width = 1,
+                               center = [-14.0, -2.0, 0.0],
+                               normal = Vector('e_x'))
+    cube2left = shapes.Surface(length = 1, width = 1,
+                               center = [-16.0, -2.0, 0.0],
+                               normal = Vector('e_x').v_mult(-1.0))
+
     surfaceList.extend([bottomSurface, wall1, wall2, wall3, wall4, slope])
+    surfaceList.append(ground)
     #surfaceList.extend(cube.get_surfaces())
     surfaceList.extend([cubefront, cubeback, cubetop, cuberight, cubeleft])
+    surfaceList.extend([cube2front, cube2back, cube2top, cube2right, cube2left])
 
     for surface in surfaceList:
         print "Center", surface.get_center()
