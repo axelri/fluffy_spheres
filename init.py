@@ -117,6 +117,17 @@ def init_main():
     #surfaceList.extend(cube.get_surfaces())
     surfaceList.extend([cubefront, cubeback, cubetop, cuberight, cubeleft])
 
+    for surface in surfaceList:
+        print "Center", surface.get_center()
+        print "Normal", surface.get_normal().get_value()
+        print "Points", surface.get_points()
+        vectors = surface.get_surface_vectors()
+        print "Surface vectors:"
+        for vector in vectors:
+            print '\t', vector.get_value()
+        print ""
+
+
     
     # List of all the players currently playing
     players = []

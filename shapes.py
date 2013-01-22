@@ -1,3 +1,8 @@
+# TODO: Split to multiple files? I think that we are beginning to loose
+# the clarity, it is too long... I suggest to have the abstract classes:
+# Shape, MovingShape and RotatingShape in one file, and the other ones:
+# Sphere, Surface and Cube in another. Any thoughts on that Axel?
+
 from math import *
 import pygame
 from pygame.locals import *
@@ -173,6 +178,9 @@ class Surface(Shape):
 
 class MovingShape(Shape):
     ''' Defines a moving Shape '''
+    # TODO: Make acceleration/force an instance variable? I think it might simplify
+    # some of the functions, as it is right now it either needs to be a global or
+    # be passed as an argument.
     def __init__(self):
         super(MovingShape, self).__init__()
 
@@ -390,16 +398,18 @@ class Sphere(RotatingShape):
         normal = surfaceVectors[1]
         size = surface.get_size()
 
-        edgeVectors = [surfaceVectors[2].v_mult(-1.0),
+        edgeVectors = [surfaceVectors[2],
                    surfaceVectors[0],
-                   surfaceVectors[2],
+                   surfaceVectors[2].v_mult(-1.0),
                    surfaceVectors[0].v_mult(-1.0)]
 
         for i in range(4):
-            distance = Vector(self.get_center()).distance_vector(Vector(points[i]))\
-                       .proj_plane(normal, edgeVectors[i]).v_mult(-1.0)
+            distance = Vector(points[i]).distance_vector(Vector(self.get_center()))\
+                       .proj_plane(normal, edgeVectors[i])
             if distance.norm() <= self.get_radius() and \
                abs(distance.dot(edgeVectors[(i+1)%4])) < size[(i+1)%2]/2:
+                print "Collided with edge", distance.get_value()
+                print "Normal:", normal.get_value(), '\n'
                 return distance.normalize(), distance
         return False, distance
 
@@ -445,6 +455,8 @@ class Sphere(RotatingShape):
 
 class Cube(MovingShape):
     ''' Defines a 3D cube. Can move around (glide) in 3D space.'''
+    # NOTE: To enable rotation while colliding: up vector should be the
+    # surface normal in the collision point.
     def __init__(self, color=constants.CUBE_COLOR,
                 side=constants.CUBE_SIDE):
         self._color = color
