@@ -107,8 +107,27 @@ class Vector:
 
     def distance_vector(self, point):
         ''' Returns a vector from self to point '''
+        # Rather unnessecary, why not just use point.v_add(self.v_mult(-1.0))?
         p = point.get_value()
         s = self._value
         return Vector([p[0] - s[0],
                        p[1] - s[1],
                        p[2] - s[2]])
+    
+    def triple_product_1(self, v2, v3):
+        ''' Calculates the triple product self x (v2 x v3)
+            in a faster and simpler way.'''
+
+        term1 = v2.v_mult(self.dot(v3))
+        term2 = v3.v_mult(-self.dot(v2))
+        out = term1.v_add(term2)
+        return out
+
+    def triple_product_2(self, v2, v3):
+        ''' Calculates the triple product (self x v2) x v3
+            in a faster and simpler way.'''
+
+        term1 = self.v_mult(-v2.dot(v3))
+        term2 = v2.v_mult(self.dot(v3))
+        out = term1.v_add(term2)
+        return out
