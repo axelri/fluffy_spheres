@@ -155,6 +155,13 @@ while run:
     mainCube.update_pos(movement)
     mainCube.update_points(movement)
 
+    #distance = mainCube.get_pos().v_add(otherCube.get_pos().v_mult(-1.0)).norm()
+
+    #if distance < mainCube.get_boundary() + otherCube.get_boundary():
+    #    collided = GJK(mainCube, otherCube)
+    #else:
+    #    collided = False
+
     collided = GJK(mainCube, otherCube)
 
     if collided:

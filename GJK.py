@@ -1,5 +1,9 @@
 # Python implementation of the GJK algorithm in 3D
 
+# TODO: Make a function that plots the Minkowski difference of two shapes;
+# this would enable better graphical debugging.
+
+
 from vector import *
 from simplex import *
 
@@ -100,7 +104,7 @@ def containsOrigin(simplex):
                 next iteration. 
     '''
 
-    #TOLERANCE = 0.00001     # If the origin is this close to a side
+    TOLERANCE = 0.00001     # If the origin is this close to a side
                             # or line in the simplex, we call it a hit
 
     # Get the last point added to the simplex
@@ -173,8 +177,9 @@ def containsOrigin(simplex):
         # Get the normal to the surface in the direction of the origin
         normal = ab.cross(ac)
         normal = normal.v_mult(normal.dot(ao))
-        #if norm(normal) < TOLERANCE:       # Might give false positives
-        #    return True, distance
+        # If the origin lies on ab, consider it a hit.
+        #if normal.norm() < TOLERANCE:       # Gives false positives...
+        #    return True, Vector()
 
         direction = normal
 
@@ -187,8 +192,9 @@ def containsOrigin(simplex):
 
         # Get the perp to AB in the direction of the origin
         abPerp = ab.triple_product_2(ao, ab)
-        #if norm(abPerp) < TOLERANCE:       # Might give false positives
-        #    return True, distance
+        # If the origin lies on ab, consider it a hit.
+        if abPerp.norm() < TOLERANCE:       # Might give false positives
+            return True, Vector()
         
         # set the direction to abPerp
         direction = abPerp
