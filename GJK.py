@@ -161,7 +161,7 @@ def containsOrigin(simplex):
             direction = acdNormal
         else:
             # The origin is in R5, collision is confirmed
-            return True, Vector()
+            return True, None
 
     elif len(simplex.get_points()) == 3:
         # Then it's the triangle case
@@ -175,13 +175,35 @@ def containsOrigin(simplex):
         ac = c.v_add(a.v_mult(-1.0))
 
         # Get the normal to the surface in the direction of the origin
-        normal = ab.cross(ac)
-        normal = normal.v_mult(normal.dot(ao))
-        # If the origin lies on ab, consider it a hit.
-        #if normal.norm() < TOLERANCE:       # Gives false positives...
-        #    return True, Vector()
+        normal1 = ab.cross(ac)
+        normal = normal1.v_mult(normal1.dot(ao))
+        
+        # If the origin lies in the same plane as abc, check if it lies
+        # on abc, if so, consider it a hit.
+        if normal.norm() < TOLERANCE:
+            # Calculate the normals of ab and ac.
+            abPerp = ac.triple_product_2(ab, ab)
+            acPerp = ab.triple_product_2(ac, ac)
 
-        direction = normal
+            # Check where the origin is
+            if abPerp.dot(ao) > 0:
+                # The origin is in R1
+                # Remove c
+                simplex.remove(c)
+                # Set new direction to abPerp
+                direction = abPerp
+            elif acPerp.dot(ao) > 0:
+                # The origin is in R2
+                # Remove b
+                simplex.remove(b)
+                # Set new direction to acPerp
+                direction = acPerp
+            else:
+                # The origin is in R3, collision confirmed
+                return True, None
+        # Otherwise, set the new direction to normal
+        else:
+            direction = normal
 
     else:
         # Then it's the line segment case
@@ -192,11 +214,33 @@ def containsOrigin(simplex):
 
         # Get the perp to AB in the direction of the origin
         abPerp = ab.triple_product_2(ao, ab)
-        # If the origin lies on ab, consider it a hit.
+        # If the origin lies on the same line as ab,
+        # check if it lies on ab, if so, consider it a hit.
         if abPerp.norm() < TOLERANCE:       # Might give false positives
-            return True, Vector()
+            if ab.dot(ao) > 0:
+
+                ###################
+                # NOTE: That we even get here means that something's 
+                # wrong with the calculation of a: it is on the wrong
+                # side of the origin and should therefore already have
+                # been discarded... 
+                ###################
+                
+                # The origin is in R1
+                # Remove b
+                simplex.remove(b)
+                # Set new direction to ao
+                direction = ao
+                # This line is added to prevent the program from
+                # entering an endless loop and crash; it should really
+                # return False...
+                return True, None
+            else:
+                # The origin is on the line, collision confirmed
+                return True, None
         
-        # set the direction to abPerp
-        direction = abPerp
+        # Otherwise set the direction to abPerp
+        else:        
+            direction = abPerp
         
     return False, direction
