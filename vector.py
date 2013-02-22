@@ -52,19 +52,28 @@ class Vector:
             return None
         return Vector(v)
 
-    def v_mult(self, scalar):
-        ''' Multiplies the vector with the scalar '''
+    def __add__(self, v2):
+        ''' Adds the vector to v2, overloads the "+"-operator.'''
+        out = [0]*len(self._value)
+        for i in range(len(self._value)):
+            out[i] = self._value[i] + v2._value[i]
+        return Vector(out)
+
+    def __mul__(self, scalar):
+        ''' Multiplies the vector with the scalar.
+            Overloads the "*"-operator. '''
         out = [0]*len(self._value)
         for i in range(len(self._value)):
             out[i] = self._value[i] * scalar
         return Vector(out)
 
-    def v_add(self, v2):
-        ''' Adds the vector to v2 '''
-        out = [0]*len(self._value)
-        for i in range(len(self._value)):
-            out[i] = self._value[i] + v2._value[i]
-        return Vector(out)
+    def __sub__(self, v2):
+        ''' Subtracts v2 from the vector, overloads the "-"-operator. '''
+        return self.__add__(v2.__mul__(-1.0))
+
+    def __neg__(self):
+        ''' Negates the vector, overloads "-self" '''
+        return self.__mul__(-1.0)
 
     def proj_norm(self, v2):
         ''' Returns the norm of the projection of the vector 

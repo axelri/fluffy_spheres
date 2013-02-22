@@ -124,14 +124,14 @@ class Surface(Shape):
             self._widthDir = Vector('e_x')
 
         # The "absolute value of the length-position of the points"
-        lengthPos = self._lengthDir.v_mult(self._length)
+        lengthPos = self._lengthDir * self._length
         # The "absolute value of the width-position of the points"
-        widthPos = self._widthDir.v_mult(self._width)
+        widthPos = self._widthDir * self._width
         
-        self._initPoints = [lengthPos.v_mult(-1.0).v_add(widthPos.v_mult(-1.0)).get_value(),
-                        lengthPos.v_mult(-1.0).v_add(widthPos).get_value(),
-                        lengthPos.v_add(widthPos).get_value(),
-                        lengthPos.v_add(widthPos.v_mult(-1.0)).get_value()]
+        self._initPoints = [((lengthPos + widthPos) * -1.0).get_value(),
+                            (widthPos - lengthPos).get_value(),
+                            (lengthPos + widthPos).get_value(),
+                            (lengthPos - widthPos).get_value()]
 
         # TODO: Quite ugly solution, fix?
         self._points = self._initPoints
@@ -152,10 +152,10 @@ class Surface(Shape):
 
     def update_points(self):
         ''' Updates the surfaces points to the current location of the surface '''
-        self._points = [Vector(self._initPoints[0]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._initPoints[1]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._initPoints[2]).v_add(Vector(self._center)).get_value(),
-                        Vector(self._initPoints[3]).v_add(Vector(self._center)).get_value()]
+        self._points = [(Vector(self._initPoints[0]) + Vector(self._center)).get_value(),
+                        (Vector(self._initPoints[1]) + Vector(self._center)).get_value(),
+                        (Vector(self._initPoints[2]) + Vector(self._center)).get_value(),
+                        (Vector(self._initPoints[3]) + Vector(self._center)).get_value()]
 
         # TODO: Remove? Do we need them?
         self._edges = [[self._points[0], self._points[1]],
@@ -207,12 +207,12 @@ class MovingShape(Shape):
         direction = Vector(directions)
 
         if direction.norm():
-            direction = direction.normalize().v_mult(self._speed)
+            direction = direction.normalize() * self._speed
 
-        self._velocity = self._velocity.v_add(acceleration)
+        self._velocity = self._velocity + acceleration
 
                 # Calculate new position
-        movementDir = self._velocity.v_add(direction)
+        movementDir = self._velocity + direction
         movement = movementDir.get_value()
         self._xPos += movement[0]
         self._yPos += movement[1]
@@ -255,8 +255,8 @@ class MovingShape(Shape):
             self._velocity '''
 
         if not self._jumping:
-            self._velocity = self._velocity.v_add(Vector([0, self._jumpSpeed \
-                                                          / constants.SLOW_DOWN, 0]))
+            self._velocity = self._velocity + Vector([0, self._jumpSpeed \
+                                                          / constants.SLOW_DOWN, 0])
             self._jumping = True
 
     def reset_jump(self):
@@ -272,15 +272,15 @@ class MovingShape(Shape):
         normal = surfaceVectors[1]
         size = surface.get_size()
 
-        distance = Vector(self.get_center()).distance_vector(Vector(surface.get_center()))
+        distance = Vector(surface.get_center()) - Vector(self.get_center())
 
         if abs(distance.dot(surfaceVectors[0])) < size[1]  \
            and abs(distance.dot(surfaceVectors[2])) < size[0]  \
            and abs(distance.dot(normal)) <= self.get_border_distance() \
            + abs(self._velocity.dot(normal)):
-            return normal, normal.v_mult(distance.dot(normal))
+            return normal, normal * distance.dot(normal)
         else:
-            return False, normal.v_mult(distance.dot(normal))
+            return False, normal * distance.dot(normal)
 
 
     def check_collision(self, surface, acceleration):
@@ -290,13 +290,13 @@ class MovingShape(Shape):
         normal, distance = self.collide(surface)
         if normal:
             #print "collided with", normal.get_value()
-            acceleration = acceleration.v_add(normal.v_mult(-normal.dot(constants.GRAV_ACC)))
-            self._velocity = self._velocity.v_add(self._velocity.v_mult(-surface.get_friction()))
+            acceleration += normal * -normal.dot(constants.GRAV_ACC)
+            self._velocity += self._velocity * -surface.get_friction()
             if distance.norm() < self.get_border_distance():
-                self.move_center(normal.v_mult(self.get_border_distance()-distance.norm()).get_value())
+                self.move_center((normal * (self.get_border_distance()-distance.norm())).get_value())
             if self._velocity.dot(normal) < 0.0:
                 self.reset_jump()
-                acceleration = acceleration.v_add(normal.v_mult(-normal.dot(self._velocity)))
+                acceleration += normal * -normal.dot(self._velocity)
         
             return acceleration, normal
         return acceleration, Vector()
@@ -405,12 +405,11 @@ class Sphere(RotatingShape):
 
         edgeVectors = [surfaceVectors[2],
                    surfaceVectors[0],
-                   surfaceVectors[2].v_mult(-1.0),
-                   surfaceVectors[0].v_mult(-1.0)]
+                   -surfaceVectors[2],
+                   -surfaceVectors[0]]
 
         for i in range(4):
-            distance = Vector(points[i]).distance_vector(Vector(self.get_center()))\
-                       .proj_plane(normal, edgeVectors[i])
+            distance = (Vector(self.get_center()) - Vector(points[i])).proj_plane(normal, edgeVectors[i])
             if distance.norm() <= self.get_radius() and \
                abs(distance.dot(edgeVectors[(i+1)%4])) < size[(i+1)%2]/2:
                 print "Collided with edge", distance.get_value()
@@ -449,8 +448,8 @@ class Sphere(RotatingShape):
     def push(self, cube, side):
         ''' Makes the sphere push the cube on the side of the cube defined by the
         normal vector side '''
-        cube.move(side.v_mult(-1.0).get_value())
-        self._velocity = self._velocity.v_add(side.v_mult(cube.get_speed()))
+        cube.move( -side.get_value())
+        self._velocity += side * cube.get_speed()
 
     def get_border_distance(self):
         return self._radius
@@ -485,7 +484,7 @@ class Cube(MovingShape):
                                      center = [self._xPos - self._side / 2.0,
                                                self._yPos,
                                                self._zPos],
-                                     normal = Vector('e_x').v_mult(-1.0),
+                                     normal = -Vector('e_x'),
                                      color = [0.0, 1.0, 0.0, 0.5])
         self._upSurface = Surface(length = self._side / 2.0,
                                      width = self._side / 2.0,
@@ -499,7 +498,7 @@ class Cube(MovingShape):
                                      center = [self._xPos,
                                                self._yPos - self._side / 2.0,
                                                self._zPos],
-                                     normal = Vector('e_y').v_mult(-1.0),
+                                     normal = -Vector('e_y'),
                                      color = [0.0, 1.0, 0.0, 0.5])
         self._frontSurface = Surface(length = self._side / 2.0,
                                      width = self._side / 2.0,
@@ -513,7 +512,7 @@ class Cube(MovingShape):
                                      center = [self._xPos,
                                                self._yPos,
                                                self._zPos - self._side / 2.0],
-                                     normal = Vector('e_z').v_mult(-1.0),
+                                     normal = -Vector('e_z'),
                                      color = [0.0, 1.0, 0.0, 0.5])
 
         self._surfaces = [self._rightSurface,
@@ -526,9 +525,7 @@ class Cube(MovingShape):
     def update_surfaces(self):
         ''' Updates the cubes surfaces so that they align with the cube. '''
         for surface in self._surfaces:
-            surface.set_center(Vector(self.get_center())\
-                               .v_add(surface.get_normal()\
-                                      .v_mult(self._side / 2.0)).get_value())
+            surface.set_center((Vector(self.get_center()) + surface.get_normal() * (self._side / 2.0)).get_value())
             surface.update_points()
             surface.update()
 

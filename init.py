@@ -88,13 +88,13 @@ def init_main():
                            normal = Vector('e_x'))
     wall2 = shapes.Surface(width = 1.0,
                            center = [SURFACE_SIZE, 1.0, 0.0],
-                           normal = Vector('e_x').v_mult(-1.0))
+                           normal = - Vector('e_x'))
     wall3 = shapes.Surface(length = 1.0,
                            center = [0.0, 1.0, -SURFACE_SIZE],
                            normal = Vector('e_z'))
     wall4 = shapes.Surface(length = 1.0,
                            center = [0.0, 1.0, SURFACE_SIZE],
-                           normal = Vector('e_z').v_mult(-1.0))
+                           normal = - Vector('e_z'))
 
     slope = shapes.Surface(normal = Vector([0.3, 1.0, 0.0]),
                            center = [-(SURFACE_SIZE + SURFACE_SIZE * 0.9553365),
@@ -110,7 +110,7 @@ def init_main():
                                normal = Vector('e_z'))
     cubeback = shapes.Surface(length = 1, width = 1,
                                center = [0.0, 1.0, -1.0],
-                               normal = Vector('e_z').v_mult(-1.0))
+                               normal = - Vector('e_z'))
     cubetop = shapes.Surface(length = 1, width = 1,
                                center = [0.0, 2.0, 0.0],
                                normal = Vector('e_y'))
@@ -119,7 +119,7 @@ def init_main():
                                normal = Vector('e_x'))
     cubeleft = shapes.Surface(length = 1, width = 1,
                                center = [-1.0, 1.0, 0.0],
-                               normal = Vector('e_x').v_mult(-1.0))
+                               normal = - Vector('e_x'))
 
 
     cube2front = shapes.Surface(length = 1, width = 1,
@@ -127,7 +127,7 @@ def init_main():
                                normal = Vector('e_z'))
     cube2back = shapes.Surface(length = 1, width = 1,
                                center = [-15.0, -2.0, -1.0],
-                               normal = Vector('e_z').v_mult(-1.0))
+                               normal = - Vector('e_z'))
     cube2top = shapes.Surface(length = 1, width = 1,
                                center = [-15.0, -1.0, 0.0],
                                normal = Vector('e_y'))
@@ -136,7 +136,7 @@ def init_main():
                                normal = Vector('e_x'))
     cube2left = shapes.Surface(length = 1, width = 1,
                                center = [-16.0, -2.0, 0.0],
-                               normal = Vector('e_x').v_mult(-1.0))
+                               normal = - Vector('e_x'))
 
     surfaceList.extend([bottomSurface, wall1, wall2, wall3, wall4, slope])
     surfaceList.append(ground)

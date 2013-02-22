@@ -23,11 +23,11 @@ class Shape:
         self._points = points
 
     def update_pos(self, movement):
-        self._pos = self._pos.v_add(movement)
+        self._pos += movement
 
     def update_points(self, movement):
         for i in range(len(self._points)):
-            self._points[i] = self._points[i].v_add(movement)
+            self._points[i] += movement
 
     def get_boundary(self):
         return self._boundaryRadius

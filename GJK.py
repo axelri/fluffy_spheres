@@ -28,13 +28,13 @@ def support(shape1Points, shape2Points, direction):
         point1List.append(point.dot(direction))
 
     for point in shape2Points:
-        point2List.append(point.dot(direction.v_mult(-1.0)))
+        point2List.append(point.dot(-direction))
     
     point1 = shape1Points[point1List.index(max(point1List))]
     point2 = shape2Points[point2List.index(max(point2List))]
 
     # Perform the Minkowski Difference
-    outPoint = point1.v_add(point2.v_mult(-1.0))
+    outPoint = point1 - point2
 
     return outPoint
 
@@ -59,13 +59,13 @@ def GJK(shape1, shape2):
     simplex = Simplex()
 
     # Choose an initial search direction
-    direction = shape2.get_pos().v_add(shape1.get_pos().v_mult(-1.0))
+    direction = shape2.get_pos() - shape1.get_pos()
     
     # Get the first Minkowski Difference point
     simplex.add(support(shape1.get_points(), shape2.get_points(), direction))
 
     # Negate d for the next point
-    direction = direction.v_mult(-1.0)
+    direction *= -1.0
     
     # Start looping
     while True:
@@ -111,7 +111,7 @@ def containsOrigin(simplex):
     a = simplex.get(1)
     
     # Compute AO (same thing as -A)
-    ao = a.v_mult(-1.0)
+    ao = - a
 
     if len(simplex.get_points()) == 4:
         # It's the tetrahedon case
@@ -124,9 +124,9 @@ def containsOrigin(simplex):
         # Compute the edges.
         # We only have to calculate some of them;
         # some can be reused, some are not needed
-        ab = b.v_add(a.v_mult(-1.0))
-        ac = c.v_add(a.v_mult(-1.0))
-        ad = d.v_add(a.v_mult(-1.0))
+        ab = b - a
+        ac = c - a
+        ad = d - a
 
         # Compute the normals
         # Since we can't be sure the winding of the triangles (?),
@@ -136,9 +136,9 @@ def containsOrigin(simplex):
         acdNormal = ac.cross(ad)
 
         # Make sure the normals are in the right direction
-        abcNormal = abcNormal.v_mult(-abcNormal.dot(ad))
-        abdNormal = abdNormal.v_mult(-abdNormal.dot(ac))
-        acdNormal = acdNormal.v_mult(-acdNormal.dot(ab))
+        abcNormal *= -abcNormal.dot(ad)
+        abdNormal *= -abdNormal.dot(ac)
+        acdNormal *= -acdNormal.dot(ab)
 
         # Check where the origin is
         if abcNormal.dot(ao) > 0:
@@ -171,12 +171,12 @@ def containsOrigin(simplex):
         c = simplex.get(3)
 
         # Compute the edges
-        ab = b.v_add(a.v_mult(-1.0))
-        ac = c.v_add(a.v_mult(-1.0))
+        ab = b - a
+        ac = c - a
 
         # Get the normal to the surface in the direction of the origin
-        normal1 = ab.cross(ac)
-        normal = normal1.v_mult(normal1.dot(ao))
+        normal = ab.cross(ac)
+        normal *= normal.dot(ao)
         
         # If the origin lies in the same plane as abc, check if it lies
         # on abc, if so, consider it a hit.
@@ -210,7 +210,7 @@ def containsOrigin(simplex):
         b = simplex.get(2)
 
         # Compute AB
-        ab = b.v_add(a.v_mult(-1.0))
+        ab = b - a
 
         # Get the perp to AB in the direction of the origin
         abPerp = ab.triple_product_2(ao, ab)
