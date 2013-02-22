@@ -45,10 +45,9 @@ def get_user_directions(moveLeft, moveRight,
     # make new relative directions from the camera
     leftVector = Vector('e_y').cross(forwardVector)
 
-    xVect = leftVector.v_mult(xDir)
-    zVect = forwardVector.v_mult(zDir)
-
-    direction = xVect.v_add(zVect)
+    xVect = leftVector * xDir
+    zVect = forwardVector * zDir
+    direction = xVect + zVect
 
     return direction.get_value()
 
