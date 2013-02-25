@@ -70,6 +70,7 @@ def GJK(shape1, shape2):
     # Start looping
     while True:
         # Add a new point to the simplex
+        # TODO: Take care of if the simplex already contains the point.
         simplex.add(support(shape1.get_points(), shape2.get_points(), direction))
 
         # Make sure that the last point we added passed the origin

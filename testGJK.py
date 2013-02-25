@@ -150,7 +150,7 @@ while run:
     yDir = keyState[K_SPACE] - keyState[K_LSHIFT]
     zDir = keyState[K_s] - keyState[K_w]
 
-    movement = Vector([xDir, yDir, zDir]).v_mult(speed)
+    movement = Vector([xDir, yDir, zDir]) * speed
 
     mainCube.update_pos(movement)
     mainCube.update_points(movement)

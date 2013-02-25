@@ -89,7 +89,7 @@ class Vector:
         n = self.proj_norm(v2)
         e2 = v2.normalize()
         if e2 != None:
-            out = e2.v_mult(n)
+            out = e2 * n
             return out
         else:
             return Vector([0]*len(self._value)) # A zero vector
@@ -101,7 +101,7 @@ class Vector:
         proj1 = self.projection(e1)
         proj2 = self.projection(e2)
         proj3 = self.projection(e3)
-        out = proj1.v_add(proj2.v_add(proj3)) # Adds all vectors
+        out = proj1 + proj2 + proj3
         
         return out
 
@@ -110,13 +110,13 @@ class Vector:
             by the vectors e1 and e2 (e1 and e2 must be orthogonal) '''
         proj1 = self.projection(e1)
         proj2 = self.projection(e2)
-        out = proj1.v_add(proj2)
+        out = proj1 + proj2
 
         return out
 
     def distance_vector(self, point):
         ''' Returns a vector from self to point '''
-        # Rather unnessecary, why not just use point.v_add(self.v_mult(-1.0))?
+        # Rather unnessecary, why not just use point - self?
         p = point.get_value()
         s = self._value
         return Vector([p[0] - s[0],
@@ -127,16 +127,16 @@ class Vector:
         ''' Calculates the triple product self x (v2 x v3)
             in a faster and simpler way.'''
 
-        term1 = v2.v_mult(self.dot(v3))
-        term2 = v3.v_mult(-self.dot(v2))
-        out = term1.v_add(term2)
+        term1 = v2 * self.dot(v3)
+        term2 = v3 * -self.dot(v2)
+        out = term1 + term2
         return out
 
     def triple_product_2(self, v2, v3):
         ''' Calculates the triple product (self x v2) x v3
             in a faster and simpler way.'''
 
-        term1 = self.v_mult(-v2.dot(v3))
-        term2 = v2.v_mult(self.dot(v3))
-        out = term1.v_add(term2)
+        term1 = self * -v2.dot(v3)
+        term2 = v2 * self.dot(v3)
+        out = term1 + term2
         return out
