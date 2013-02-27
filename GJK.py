@@ -63,9 +63,19 @@ def GJK(shape1, shape2):
     
     # Get the first Minkowski Difference point
     simplex.add(support(shape1.get_points(), shape2.get_points(), direction))
+    simplex.add(support(shape1.get_points(), shape2.get_points(), -direction))
 
-    # Negate d for the next point
-    direction *= -1.0
+    a = simplex.get(1)
+    b = simplex.get(2)
+
+    if a.dot(b) > 0:
+        # Both points on the same side of the origin: no collision, return False
+        return False
+    # Get the next direction
+    originInSimplex, direction = containsOrigin(simplex)
+    if originInSimplex:
+        # Collision, return True
+        return True
     
     # Start looping
     while True:
@@ -218,30 +228,11 @@ def containsOrigin(simplex):
         # If the origin lies on the same line as ab,
         # check if it lies on ab, if so, consider it a hit.
         if abPerp.norm() < TOLERANCE:       # Might give false positives
-            if ab.dot(ao) > 0:
-
-                ###################
-                # NOTE: That we even get here means that something's 
-                # wrong with the calculation of a: it is on the wrong
-                # side of the origin and should therefore already have
-                # been discarded... 
-                ###################
-                
-                # The origin is in R1
-                # Remove b
-                simplex.remove(b)
-                # Set new direction to ao
-                direction = ao
-                # This line is added to prevent the program from
-                # entering an endless loop and crash; it should really
-                # return False...
-                return True, None
-            else:
-                # The origin is on the line, collision confirmed
-                return True, None
+            # The origin is on the line, collision confirmed
+            return True, None
         
         # Otherwise set the direction to abPerp
         else:        
             direction = abPerp
-        
+    
     return False, direction
