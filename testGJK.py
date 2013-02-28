@@ -51,6 +51,41 @@ RED = (1, 0, 0)
 
 currentColor = GREEN
 
+
+X = 0.525731112119133606 
+
+Z = 0.850650808352039932
+
+
+ICO_POINTS = [
+    [-X, 0.0, Z], [X, 0.0, Z], [-X, 0.0, -Z], [X, 0.0, -Z],
+    [0.0, Z, X], [0.0, Z, -X], [0.0, -Z, X], [0.0, -Z, -X],
+    [Z, X, 0.0], [-Z, X, 0.0], [Z, -X, 0.0], [-Z, -X, 0.0]]
+
+ICO_VERTS = [
+    [0,4,1], [0,9,4], [9,5,4], [4,5,8], [4,8,1],
+    [8,10,1], [8,3,10], [5,3,8], [5,2,3], [2,7,3],
+    [7,10,3], [7,6,10], [7,11,6], [11,0,6], [0,1,6],
+    [6,1,10], [9,0,11], [9,11,2], [9,2,5], [7,2,11]]
+
+def drawIco():
+    'draw a icosahedron in lovely colors'
+    glBegin(GL_TRIANGLES)
+    for i in range(20):
+
+       glColor3f((0.31*i)%1, (0.45*i)%1, (0.11*i)%1)
+
+       glVertex3fv(ICO_POINTS[ICO_VERTS[i][0]])
+
+       glVertex3fv(ICO_POINTS[ICO_VERTS[i][1]])
+
+       glVertex3fv(ICO_POINTS[ICO_VERTS[i][2]])
+
+    glEnd()
+
+
+
+
 def drawMainCube():
     "draw the cube"
     allpoints = zip(CUBE_POINTS, CUBE_COLORS)
@@ -93,18 +128,6 @@ def drawOtherCube():
             glVertex3fv(pos)
     glEnd()
 
-def update_points(points, pos):
-    ''' Updates the points to the new position.
-        Takes original points (centered at origin) and
-        new position as input'''
-    out = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
-    for i in range(len(points)):
-        for j in range(len(points[i])):
-            out[i][j] = points[i][j] + pos[j]
-    return out
-
-
-
 speed = 0.1
 xPos = 2.0
 yPos = 0.0
@@ -113,21 +136,35 @@ pos = [xPos, yPos, zPos]
 
 otherPos = [-2.0, 0.0, 0.0]
 
-mainPoints = update_points(CUBE_POINTS, pos)
-otherPoints = update_points(CUBE_POINTS, otherPos)
+points = CUBE_POINTS
+icoPoints = ICO_POINTS
 
 pos = Vector(pos)
 otherPos = Vector(otherPos)
 
-for i in range(len(mainPoints)):
-    mainPoints[i] = Vector(mainPoints[i])
+cubeOutVec = [0]*len(points)
+for i in range(len(points)):
+    out = points[i]
+    cubeOutVec[i] = Vector(out)
 
-for i in range(len(otherPoints)):
-    otherPoints[i] = Vector(otherPoints[i])
+icoOutVec = [0]*len(icoPoints)
+for i in range(len(icoPoints)):
+    out = icoPoints[i]
+    icoOutVec[i] = Vector(out)
+
+#mainCube = Shape(cubeOutVec, pos)
+icosahedron = Shape(icoOutVec, pos)
+otherCube = Shape(cubeOutVec, otherPos)
 
 
-mainCube = Shape(mainPoints, pos)
-otherCube = Shape(otherPoints, otherPos)
+#mainCube.update_points(pos)
+icosahedron.update_points(pos)
+otherCube.update_points(otherPos)
+
+print 'icoPoints'
+pointList = icosahedron.get_points()
+for point in pointList:
+    print point.get_value()
 
 
 glTranslatef(0.0, 0.0, -10.0)                #move back
@@ -152,28 +189,26 @@ while run:
 
     movement = Vector([xDir, yDir, zDir]) * speed
 
-    mainCube.update_pos(movement)
-    mainCube.update_points(movement)
+    #mainCube.update_pos(movement)
+    #mainCube.update_points(movement)
+    icosahedron.update_pos(movement)
+    icosahedron.update_points(movement)
 
-    #distance = mainCube.get_pos().v_add(otherCube.get_pos().v_mult(-1.0)).norm()
-
-    #if distance < mainCube.get_boundary() + otherCube.get_boundary():
-    #    collided = GJK(mainCube, otherCube)
-    #else:
-    #    collided = False
-
-    collided = GJK(mainCube, otherCube)
+    #collided = GJK(mainCube, otherCube)
+    collided = GJK(icosahedron, otherCube)
 
     if collided:
         currentColor = RED
     else:
         currentColor = GREEN
 
-    pos = mainCube.get_pos().get_value()
+    #pos = mainCube.get_pos().get_value()
+    pos = icosahedron.get_pos().get_value()
 
     glPushMatrix()
     glTranslatef(pos[0], pos[1], pos[2])
-    drawMainCube()
+    #drawMainCube()
+    drawIco()
     glPopMatrix()
 
 

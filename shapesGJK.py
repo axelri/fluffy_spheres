@@ -7,7 +7,7 @@ class Shape:
     def __init__(self, points, position):
         self._pos = position
         self._points = points
-        self._boundaryRadius = 0.5**(2.0/3.0)   # Only applies to cubes with
+        #self._boundaryRadius = 0.5**(2.0/3.0)   # Only applies to cubes with
                                                 # side 1.0, should be defined for each shape.
 
     def get_pos(self):
@@ -26,8 +26,11 @@ class Shape:
         self._pos += movement
 
     def update_points(self, movement):
+        outPoints = [0]*len(self._points)
         for i in range(len(self._points)):
-            self._points[i] += movement
+            out = self._points[i] + movement
+            outPoints[i] = out
+        self._points = outPoints
 
-    def get_boundary(self):
-        return self._boundaryRadius
+    #def get_boundary(self):
+        #return self._boundaryRadius
