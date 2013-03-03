@@ -128,6 +128,18 @@ def drawOtherCube():
             glVertex3fv(pos)
     glEnd()
 
+def drawCross():
+
+    glColor3fv([1.0, 1.0, 1.0])
+    glBegin(GL_LINES)
+    glVertex3fv([-3.0, 0.0, 0.0])
+    glVertex3fv([3.0, 0.0, 0.0])
+    glVertex3fv([0.0, -3.0, 0.0])
+    glVertex3fv([0.0, 3.0, 0.0])
+    glVertex3fv([0.0, 0.0, -3.0])
+    glVertex3fv([0.0, 0.0, 3.0])
+    glEnd()
+
 speed = 0.1
 xPos = 2.0
 yPos = 0.0
@@ -161,12 +173,6 @@ otherCube = Shape(cubeOutVec, otherPos)
 icosahedron.update_points(pos)
 otherCube.update_points(otherPos)
 
-print 'icoPoints'
-pointList = icosahedron.get_points()
-for point in pointList:
-    print point.get_value()
-
-
 glTranslatef(0.0, 0.0, -10.0)                #move back
 glRotatef(25.0, 1.0, 0.0, 0.0) 
 
@@ -194,8 +200,8 @@ while run:
     icosahedron.update_pos(movement)
     icosahedron.update_points(movement)
 
-    #collided = GJK(mainCube, otherCube)
-    collided = GJK(icosahedron, otherCube)
+    #collided, collisionPoint = GJK(mainCube, otherCube)
+    collided, collisionPoint = GJK(icosahedron, otherCube)
 
     if collided:
         currentColor = RED
@@ -204,6 +210,8 @@ while run:
 
     #pos = mainCube.get_pos().get_value()
     pos = icosahedron.get_pos().get_value()
+    if collisionPoint:
+        colPos = collisionPoint.get_value()
 
     glPushMatrix()
     glTranslatef(pos[0], pos[1], pos[2])
@@ -217,6 +225,11 @@ while run:
     drawOtherCube()
     glPopMatrix()
 
+    if collisionPoint:
+        glPushMatrix()
+        glTranslatef(colPos[0], colPos[1], colPos[2])
+        drawCross()
+        glPopMatrix()
 
     pygame.display.flip()
     pygame.time.wait(10)
