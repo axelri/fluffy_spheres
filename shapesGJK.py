@@ -4,17 +4,24 @@ from vector import *
 
 class Shape:
 
-    def __init__(self, points, position):
+    def __init__(self, points, position, support_func):
         self._pos = position
         self._points = points
+        self.sup_func = support_func
+        self._radius = 1.0 # Just used to test support func for spheres
         #self._boundaryRadius = 0.5**(2.0/3.0)   # Only applies to cubes with
                                                 # side 1.0, should be defined for each shape.
+    def support_func(self, direction):
+        return self.sup_func(self, direction)
 
     def get_pos(self):
         return self._pos
 
     def get_points(self):
         return self._points
+
+    def get_radius(self):
+        return self._radius
 
     def set_pos(self, pos):
         self._pos = pos

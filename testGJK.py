@@ -7,6 +7,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from shapesGJK import *
 from GJK import *
+import support
 
 
 pygame.init()
@@ -140,6 +141,15 @@ def drawCross():
     glVertex3fv([0.0, 0.0, 3.0])
     glEnd()
 
+def drawPlane():
+    glColor3fv([0.4, 0.4, 0.6])
+    glBegin(GL_TRIANGLES)
+    for point in plane.get_points():
+        glVertex3fv(point.get_value())
+    glEnd()
+
+PLANE_POINTS = [[-1.0, 1.0, 0.0], [1.0, -1.0, 1.0], [1.0, -1.0, -1.0]]
+
 speed = 0.1
 xPos = 2.0
 yPos = 0.0
@@ -150,6 +160,7 @@ otherPos = [-2.0, 0.0, 0.0]
 
 points = CUBE_POINTS
 icoPoints = ICO_POINTS
+planePoints = PLANE_POINTS
 
 pos = Vector(pos)
 otherPos = Vector(otherPos)
@@ -159,19 +170,27 @@ for i in range(len(points)):
     out = points[i]
     cubeOutVec[i] = Vector(out)
 
+planeOutVec = [0]*len(planePoints)
+for i in range(len(planePoints)):
+    out = planePoints[i]
+    planeOutVec[i] = Vector(out)
+
 icoOutVec = [0]*len(icoPoints)
 for i in range(len(icoPoints)):
     out = icoPoints[i]
     icoOutVec[i] = Vector(out)
 
-#mainCube = Shape(cubeOutVec, pos)
-icosahedron = Shape(icoOutVec, pos)
-otherCube = Shape(cubeOutVec, otherPos)
+#mainCube = Shape(cubeOutVec, pos, support.polyhedron)
+icosahedron = Shape(icoOutVec, pos, support.sphere)
+icosahedron = Shape(icoOutVec, pos, support.polyhedron)
+otherCube = Shape(cubeOutVec, otherPos, support.polyhedron)
+#plane = Shape(planeOutVec, pos, support.polyhedron)
 
 
 #mainCube.update_points(pos)
 icosahedron.update_points(pos)
 otherCube.update_points(otherPos)
+#plane.update_points(pos)
 
 glTranslatef(0.0, 0.0, -10.0)                #move back
 glRotatef(25.0, 1.0, 0.0, 0.0) 
@@ -199,9 +218,12 @@ while run:
     #mainCube.update_points(movement)
     icosahedron.update_pos(movement)
     icosahedron.update_points(movement)
+    #plane.update_pos(movement)
+    #plane.update_points(movement)
 
     #collided, collisionPoint = GJK(mainCube, otherCube)
     collided, collisionPoint = GJK(icosahedron, otherCube)
+    #collided, collisionPoint = GJK(plane, otherCube)
 
     if collided:
         currentColor = RED
@@ -210,6 +232,7 @@ while run:
 
     #pos = mainCube.get_pos().get_value()
     pos = icosahedron.get_pos().get_value()
+    #pos = plane.get_pos().get_value()
     if collisionPoint:
         colPos = collisionPoint.get_value()
 
@@ -217,6 +240,7 @@ while run:
     glTranslatef(pos[0], pos[1], pos[2])
     #drawMainCube()
     drawIco()
+    #drawPlane()
     glPopMatrix()
 
 

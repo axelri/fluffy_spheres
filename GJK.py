@@ -6,48 +6,7 @@
 
 from vector import *
 from simplex import *
-
-def support(shape1, shape2, direction):
-    ''' Calculates a point in Minkowski space that is on the edge of
-        the Minkowski Difference of the two shapes.
-
-        Input:
-            *   shape1Points and shape2Points are lists of the points in
-                shape1 and shape2, represented as Vector objects.
-            *   direction is a Vector object indicating in which direction
-                to look for a new point (doesn't have to be normalized).
-        Output:
-            *   outPoint is a point on the edge of the Minkowski Difference
-                of the two shapes.
-    '''
-    # TODO: make a support function for each shape,
-    # e.g. shape.support_func(direction), that returns point1 and
-    # point2 that are used in this algorithm. Different types of
-    # shapes can have better and more efficient algorithms than
-    # the one used here. This algorithm works for an arbitrary
-    # convex set of vertices, whereas e.g. a sphere would have
-    # something like self.center + direction*radius.
-    
-    # Get points on the edge of the shapes in opposite directions
-    point1List = []
-    point2List = []
-    shape1Points = shape1.get_points()
-    shape2Points = shape2.get_points()
-    for point in shape1Points:
-        point1List.append(point.dot(direction))
-
-    for point in shape2Points:
-        point2List.append(point.dot(-direction))
-    
-    point1 = shape1Points[point1List.index(max(point1List))]
-    point2 = shape2Points[point2List.index(max(point2List))]
-
-    # Perform the Minkowski Difference
-    outPoint = point1 - point2
-
-    return outPoint, point1, point2
-
-
+from support import support
 
 def GJK(shape1, shape2):
     ''' Calculates whether shape1 has collided with shape2. It uses Minkowski
@@ -61,36 +20,20 @@ def GJK(shape1, shape2):
                 it's vertices.
         Output:
             *   The output is a Boolean: True if the shapes have collided and
-                False otherwise.
+                False otherwise. It also outputs an approximation of the
+                contact point, represented as a Vector object.
     '''
 
     # Create a Simplex object
     simplex = Simplex()
 
     # Choose an initial search direction
-    direction = shape2.get_pos() - shape1.get_pos()
+    direction = shape1.get_pos() - shape2.get_pos()
     
     # Get the first Minkowski Difference point
     simplex.add(support(shape1, shape2, direction))
-    simplex.add(support(shape1, shape2, -direction))
-
-##    a = simplex.get(1)
-##    b = simplex.get(2)
-##
-##    if a.dot(b) > 0:
-##        # Both points on the same side of the origin: no collision, return False
-##        print 'False in first check'
-##        print 'a:', a.get_value()
-##        print 'b:', b.get_value()
-##        return False
-    # Get the next direction
-    originInSimplex, direction = containsOrigin(simplex)
-    if originInSimplex:
-        # Collision, return True
-        #print 'True in first check'
-        collisionPoint = pointOfCollision(simplex)
-        return True, collisionPoint
     
+    direction *= -1.0
     # Start looping
     while True:
         #print 'New loop'
@@ -101,7 +44,7 @@ def GJK(shape1, shape2):
         # Make sure that the last point we added passed the origin
         if simplex.get(1).dot(direction) <= 0:
             # If the point added last was not past the origin in
-            # the chosen direction then the Minkowski Sum cannot
+            # the chosen direction then the Minkowski Difference cannot
             # possibly contain the origin since the last point
             # added is on the edge of the Minkowski Difference.
             #print 'False in loop'
@@ -255,7 +198,7 @@ def containsOrigin(simplex):
 
         if ab.dot(ao) < 0:
             #print 'False in line: direction ahead!'
-            simplex.remove(b)
+            simplex.remove(2)
             direction = ao
         else:
             # Get the perp to AB in the direction of the origin
@@ -264,10 +207,6 @@ def containsOrigin(simplex):
             # check if it lies on ab, if so, consider it a hit.
             if abPerp.norm() < TOLERANCE:       # Might give false positives
                 #print 'On the line, True'
-                #print 'a:', a.get_value()
-                #print 'b:', b.get_value()
-                #print 'ao:', ao.get_value()
-                #print 'ab:', ab.get_value()
                 # The origin is on the line, collision confirmed
                 return True, None
             
@@ -282,7 +221,7 @@ def pointOfCollision(simplex):
     ''' Returns the point in the shapes that represents the point of collision.
         This is calculated as the mean value of the points in the shapes that
         are closest to eachother. This is a pretty rough approximation, but
-        should be sufficient for our needs. '''
+        could be sufficient for our needs. '''
 
     a = simplex.get(1)
     ao = -a
@@ -359,6 +298,7 @@ def pointOfCollision(simplex):
         # Line
 
         b = simplex.get(2)
+        ab = b - a
         if ao.proj_norm(ab)/ab.norm() < 0.5:
             # a is closest
             points = simplex.get_all(1)
