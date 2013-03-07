@@ -48,7 +48,7 @@ def GJK(shape1, shape2):
             # possibly contain the origin since the last point
             # added is on the edge of the Minkowski Difference.
             #print 'False in loop'
-            return False, None
+            return False, None, None, None
         else:
             # Otherwise we need to determine if the origin is in
             # the current simplex
@@ -56,8 +56,8 @@ def GJK(shape1, shape2):
             if originInSimplex:
                 # If it is then we know there is a collision
                 #print 'True in loop'
-                collisionPoint = pointOfCollision(simplex)
-                return True, collisionPoint
+                collisionPoint, point1, point2 = pointOfCollision(simplex)
+                return True, collisionPoint, point1, point2
 
 
 
@@ -310,4 +310,4 @@ def pointOfCollision(simplex):
 
         
 
-    return collisionPoint
+    return collisionPoint, points[1], points[2]
