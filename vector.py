@@ -75,6 +75,14 @@ class Vector:
         ''' Negates the vector, overloads "-self" '''
         return self.__mul__(-1.0)
 
+    def __eq__(self, vector):
+        ''' Checks if two vectors have the same value, overloads "==" '''
+        return self._value == vector._value
+
+    def __ne__(self, vector):
+        ''' Checks if two vectors do not have the same value, overloads "!=" '''
+        return self._value != vector._value
+
     def proj_norm(self, v2):
         ''' Returns the norm of the projection of the vector 
             on the vector v2 '''

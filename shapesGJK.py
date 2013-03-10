@@ -9,8 +9,8 @@ class Shape:
         self._points = points
         self.sup_func = support_func
         self._radius = 1.0 # Just used to test support func for spheres
-        #self._boundaryRadius = 0.5**(2.0/3.0)   # Only applies to cubes with
-                                                # side 1.0, should be defined for each shape.
+        self._mass = 1
+        
     def support_func(self, direction):
         return self.sup_func(self, direction)
 
@@ -38,6 +38,3 @@ class Shape:
             out = self._points[i] + movement
             outPoints[i] = out
         self._points = outPoints
-
-    #def get_boundary(self):
-        #return self._boundaryRadius

@@ -226,7 +226,12 @@ while run:
     #collided, collisionPoint, point1, point2 = GJK(mainCube, otherCube)
     #collided, collisionPoint, point1, point2 = GJK(icosahedron, otherCube)
     #collided, collisionPoint, point1, point2 = GJK(plane, otherCube)
-    collided, collisionPoint, point1, point2 = GJK(sphere, otherCube)
+    #collided, collisionPoint, point1, point2 = GJK(sphere, otherCube)
+
+    collided, collisionPoint = GJK(sphere, otherCube)
+    #collided, collisionPoint = GJK(mainCube, otherCube)
+    #collided, collisionPoint = GJK(plane, otherCube)
+    
 
     if collided:
         currentColor = RED
@@ -239,8 +244,8 @@ while run:
     pos = sphere.get_pos().get_value()
     if collisionPoint:
         colPos = collisionPoint.get_value()
-        point1pos = point1.get_value()
-        point2pos = point2.get_value()
+        #point1pos = point1.get_value()
+        #point2pos = point2.get_value()
 
     glPushMatrix()
     glTranslatef(pos[0], pos[1], pos[2])
@@ -262,14 +267,14 @@ while run:
         glTranslatef(colPos[0], colPos[1], colPos[2])
         drawCross([1.0, 1.0, 1.0])
         glPopMatrix()
-        glPushMatrix()
-        glTranslatef(point1pos[0], point1pos[1], point1pos[2])
-        drawCross([1.0, 0.0, 0.0])
-        glPopMatrix()
-        glPushMatrix()
-        glTranslatef(point2pos[0], point2pos[1], point2pos[2])
-        drawCross([0.0, 1.0, 0.0])
-        glPopMatrix()
+##        glPushMatrix()
+##        glTranslatef(point1pos[0], point1pos[1], point1pos[2])
+##        drawCross([1.0, 0.0, 0.0])
+##        glPopMatrix()
+##        glPushMatrix()
+##        glTranslatef(point2pos[0], point2pos[1], point2pos[2])
+##        drawCross([0.0, 1.0, 0.0])
+##        glPopMatrix()
 
     pygame.display.flip()
     pygame.time.wait(10)

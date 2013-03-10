@@ -7,6 +7,7 @@
 from vector import *
 from simplex import *
 from support import support
+import gauss
 
 def GJK(shape1, shape2):
     ''' Calculates whether shape1 has collided with shape2. It uses Minkowski
@@ -23,7 +24,7 @@ def GJK(shape1, shape2):
                 False otherwise. It also outputs an approximation of the
                 contact point, represented as a Vector object.
     '''
-
+    
     # Create a Simplex object
     simplex = Simplex()
 
@@ -48,7 +49,8 @@ def GJK(shape1, shape2):
             # possibly contain the origin since the last point
             # added is on the edge of the Minkowski Difference.
             #print 'False in loop'
-            return False, None, None, None
+            #return False, None, None, None
+            return False, None
         else:
             # Otherwise we need to determine if the origin is in
             # the current simplex
@@ -56,8 +58,10 @@ def GJK(shape1, shape2):
             if originInSimplex:
                 # If it is then we know there is a collision
                 #print 'True in loop'
-                collisionPoint, point1, point2 = pointOfCollision(simplex)
-                return True, collisionPoint, point1, point2
+                #collisionPoint, point1, point2 = pointOfCollision(simplex)
+                #return True, collisionPoint, point1, point2
+                collisionPoint = pointOfCollision_2(simplex)
+                return True, collisionPoint
 
 
 
@@ -310,4 +314,41 @@ def pointOfCollision(simplex):
 
         
 
-    return collisionPoint, points[1], points[2]
+    return collisionPoint #, points[1], points[2]
+
+def pointOfCollision_2(simplex):
+    ''' Another approach to calculating the collision point, using
+        baryocentric coordinates. '''
+    # TODO: Make sure GJK terminates with a full simplex (tetrahedron)
+    #points in the minkowski simplex
+    simpPoints = simplex.get_all_points(0)
+    #points in the simplex of shape 1
+    aPoints = simplex.get_all_points(1)
+    #points in the simplex of shape 2
+    bPoints = simplex.get_all_points(2)
+
+    # create a matrix 
+    matrix = [[1.0]*len(simpPoints)]
+    vectors = []
+    for vector in simpPoints:
+        value = vector.get_value()
+        vectors.append(value)
+    for i in range(len(vectors[0])):
+        outvec = []
+        for j in range(len(vectors)):
+            outvec.append(vectors[j][i])
+        matrix.append(outvec)
+            
+
+    barCoord = gauss.solve(matrix, [1.0, 0.0, 0.0, 0.0])
+    if barCoord:
+        collisionPoint = Vector()
+
+        for i in range(len(aPoints)):
+            collisionPoint += aPoints[i]*barCoord[i]
+
+        return collisionPoint
+    else:
+        print 'Singular!'
+        return pointOfCollision(simplex)
+    

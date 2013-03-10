@@ -37,4 +37,10 @@ class Simplex:
 
     def get_points(self):
         return self._points
+
+    def get_all_points(self, index):
+        out = []
+        for i in range(len(self._points)):
+            out.append(self._points[-i][index])
+        return out
     
