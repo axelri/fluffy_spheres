@@ -18,6 +18,9 @@ class Vector:
 
     def set_value(self, value):
         self._value = value
+
+    def isZero(self):
+        return self._value == [0.0, 0.0, 0.0]
     
     def dot(self, v2):
         ''' Calculates the dot product of the vector and v2 '''
