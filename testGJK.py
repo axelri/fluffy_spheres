@@ -102,8 +102,10 @@ while run:
     if not direction.isZero():
         direction = direction.normalize()
 
+    velChange = lastDirection*(sphere.get_velocity() - lastDirection*speed).dot(lastDirection)
+
     if direction != lastDirection:
-        sphere.add_velocity((direction - lastDirection)* speed)
+        sphere.add_velocity((direction - lastDirection )* speed - velChange)
         lastDirection = direction
 
     
@@ -129,6 +131,7 @@ while run:
 
     sphere.update_pos(sphere.get_velocity())
     otherCube.update_pos(otherCube.get_velocity())
+    otherCube.update_points(otherCube.get_velocity())
 
     if collided:
         #currentColor = RED

@@ -10,13 +10,14 @@ def collision_response(shape1, shape2, collisionPoint, penetrationNormal, penetr
     if relativeVel.dot(penetrationNormal) < 0:
         return
     
-    e = 0.0     # coefficient of elasticity
+    e = 1.0     # coefficient of elasticity
 
     v_ab = relativeVel
-    n = penetrationNormal
-
+    n = penetrationNormal   
 
     impulse = -(1+e)*v_ab.dot(n)/((invMass1+invMass2)*n.dot(n))
+
+    
 
     # Hack to prevent sinking
     #impulse += penetrationDepth*1.5
