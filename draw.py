@@ -119,11 +119,12 @@ def drawCross(color):
     glVertex3fv([0.0, 0.0, 3.0])
     glEnd()
 
-def drawPlane():
-    glColor3fv([0.4, 0.4, 0.6])
+def drawPlane(plane):
+    #glColor3fv([0.4, 0.4, 0.6])
+    glColor3fv(plane.get_color())
     glBegin(GL_QUADS)
     for point in plane.get_points():
-        glVertex3fv(point.get_value())
+        glVertex3fv(point.value)
     glEnd()
 
 PLANE_POINTS = [[0.0, -3.0, -3.0], [0.0, 3.0, -3.0],

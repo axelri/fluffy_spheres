@@ -1,17 +1,9 @@
-# Python implementation of the GJK algorithm in 3D
-
-# TODO: Make a function that plots the Minkowski difference of two shapes;
-# this would enable better graphical debugging.
-
-
-from vector import *
-from simplex import *
-from support import support
+import vectors
+import simplices
+import supports
 import gauss
 import numbers
-
-# Necessary? Only needed for the assert in the beginning...
-from shapesGJK import Shape
+import shapes
 
 def GJK(shape1, shape2):
     ''' Calculates whether shape1 has collided with shape2. It uses Minkowski
@@ -28,26 +20,25 @@ def GJK(shape1, shape2):
                 False otherwise. It also outputs an approximation of the
                 contact point, represented as a Vector object.
     '''
-    assert isinstance(shape1, Shape), 'Input must be a Shape object'
-    assert isinstance(shape2, Shape), 'Input must be a Shape object'
+    assert isinstance(shape1, shapes.Shape), 'Input must be a Shape object'
+    assert isinstance(shape2, shapes.Shape), 'Input must be a Shape object'
     # Create a Simplex object
-    simplex = Simplex()
+    simplex = simplices.Simplex()
 
     # Choose an initial search direction
     direction = shape1.get_pos() - shape2.get_pos()
     
     # Get the first Minkowski Difference point
-    simplex.add(support(shape1, shape2, direction))
+    simplex.add(supports.support(shape1, shape2, direction))
     
     direction *= -1.0
 
     originInSimplex = None
     # Start looping
     while True:
-        #print 'New loop'
         # Add a new point to the simplex
         # TODO: Take care of if the simplex already contains the point.
-        simplex.add(support(shape1, shape2, direction))
+        simplex.add(supports.support(shape1, shape2, direction))
 
         # Make sure that the last point we added passed the origin
         if simplex.get(1).dot(direction) <= 0 and originInSimplex != '':
@@ -55,8 +46,6 @@ def GJK(shape1, shape2):
             # the chosen direction then the Minkowski Difference cannot
             # possibly contain the origin since the last point
             # added is on the edge of the Minkowski Difference.
-            #print 'False in loop'
-            #return False, None, None, None
             return False, (None, None, None)
         else:
             # Otherwise we need to determine if the origin is in
@@ -64,29 +53,20 @@ def GJK(shape1, shape2):
             originInSimplex, direction = containsOrigin(simplex)
             if originInSimplex:
                 # If it is then we know there is a collision
-                #print 'True in loop'
-                #collisionPoint, point1, point2 = pointOfCollision(simplex)
-                #return True, collisionPoint, point1, point2
                 assert len(simplex.get_points()) == 4, \
                        'Terminated without full simplex'
-                collisionPoint = pointOfCollision_2(simplex)
+                collisionPoint = pointOfCollision_2(simplex)            
 
-                ######
-                # A very rough approximation of the penetration depth
-                # and vector that only applies if shape1 is a sphere...
-                # Must be edited to be more accurate (and work for other shapes)
-                # TODO: Better penetration normal
-
-                penetrationNormal = (collisionPoint - shape1.get_pos()).normalize()
-                penetrationDepth = (penetrationNormal*shape1.get_radius() \
-                                   - (collisionPoint - shape1.get_pos())).norm()
+                penetrationNormal, penetrationDepth = normal_and_depth(shape1, shape2, collisionPoint)
 
                 
-                assert isinstance(collisionPoint, Vector), \
-                       'Invalid type for collisionPoint'
-                assert isinstance(penetrationNormal, Vector), \
-                       'Invalid type for penetrationNormal'
-                assert isinstance(penetrationDepth, numbers.Number)
+                assert isinstance(collisionPoint, vectors.Vector), \
+                       'collisionPoint must be a vector'
+                assert isinstance(penetrationNormal, vectors.Vector), \
+                       'penetrationNormal must be a vector'
+                assert isinstance(penetrationDepth, numbers.Number), \
+                       'penetrationDepth must be a number'
+                assert penetrationDepth >= 0, 'penetrationDepth must be at least 0'
                 return True, (collisionPoint, penetrationNormal, penetrationDepth)
 
 
@@ -105,7 +85,7 @@ def containsOrigin(simplex):
                 in which direction to search for the origin in the
                 next iteration. 
     '''
-    assert isinstance(simplex, Simplex), 'Input must be a Simplex object'
+    assert isinstance(simplex, simplices.Simplex), 'Input must be a Simplex object'
     TOLERANCE = 0.00001     # If the origin is this close to a side
                             # or line in the simplex, we call it a hit
 
@@ -116,7 +96,6 @@ def containsOrigin(simplex):
     ao = - a
 
     if len(simplex.get_points()) == 4:
-        #print 'Tetrahedron'
         # It's the tetrahedon case
 
         # Get b, c and d
@@ -145,21 +124,18 @@ def containsOrigin(simplex):
 
         # Check where the origin is
         if abcNormal.dot(ao) > 0:
-            #print 'In R1, False'
             # The origin is in R1
             # Remove point d
             simplex.remove(4)
             # Set new direction to abcNormal
             direction = abcNormal
         elif abdNormal.dot(ao) > 0:
-            #print 'In R2, False'
             # The origin is in R2
             # Remove point c
             simplex.remove(3)
             # Set new direction to abdNormal
             direction = abdNormal
         elif acdNormal.dot(ao) > 0:
-            #print 'In R3, False'
             # The origin is in R3
             # Remove point b
             simplex.remove(2)
@@ -167,11 +143,9 @@ def containsOrigin(simplex):
             direction = acdNormal
         else:
             # The origin is in R5, collision is confirmed
-            #print 'True in tetrahedron'
             return True, None
 
     elif len(simplex.get_points()) == 3:
-        #print 'Triangle'
         # Then it's the triangle case
         
         # Get b and c
@@ -189,21 +163,18 @@ def containsOrigin(simplex):
         # If the origin lies in the same plane as abc, check if it lies
         # on abc, if so, consider it a hit.
         if normal.norm() < TOLERANCE:
-            #print 'Origin in the plane'
             # Calculate the normals of ab and ac.
             abPerp = ac.triple_product_2(ab, ab)
             acPerp = ab.triple_product_2(ac, ac)
 
             # Check where the origin is
             if abPerp.dot(ao) > 0:
-                #print 'In R1, False'
                 # The origin is in R1
                 # Remove c
                 simplex.remove(3)
                 # Set new direction to abPerp
                 direction = abPerp
             elif acPerp.dot(ao) > 0:
-                #print 'In R2, False'
                 # The origin is in R2
                 # Remove b
                 simplex.remove(2)
@@ -211,8 +182,6 @@ def containsOrigin(simplex):
                 direction = acPerp
             else:
                 # The origin is in R3, collision confirmed
-                #print 'True in triangle'
-                #return True, None
                 # The origin is in the simplex, return a normal to
                 # be able to build the full tetrahedron and an empty
                 # string to force it to continue
@@ -220,11 +189,9 @@ def containsOrigin(simplex):
                 return '', ab.cross(ac)
         # Otherwise, set the new direction to normal
         else:
-            #print 'Origin not in plane, False'
             direction = normal
 
     else:
-        #print 'Line'
         # Then it's the line segment case
         b = simplex.get(2)
 
@@ -232,7 +199,6 @@ def containsOrigin(simplex):
         ab = b - a
 
         if ab.dot(ao) < 0:
-            #print 'False in line: direction ahead!'
             simplex.remove(2)
             direction = ao
         else:
@@ -241,23 +207,21 @@ def containsOrigin(simplex):
             # If the origin lies on the same line as ab,
             # check if it lies on ab, if so, consider it a hit.
             if abPerp.norm() < TOLERANCE:
-                #print 'On the line, True'
                 # The origin is on the line, collision confirmed
 
                 # The origin is in the simplex, return a normal to
                 # be able to build the full tetrahedron and an empty
                 # string to force it to continue
                 # TODO: Ugly solution, fix?
-                if ab.dot(Vector([1.0, 0.0, 0.0])) - ab.norm() < TOLERANCE:
-                    return '', Vector([0.0, 1.0, 0.0])
+                if ab.dot(vectors.Vector([1.0, 0.0, 0.0])) - ab.norm() < TOLERANCE:
+                    return '', vectors.Vector([0.0, 1.0, 0.0])
                 else:
-                    return '', Vector([1.0, 0.0, 0.0])
+                    return '', vectors.Vector([1.0, 0.0, 0.0])
             
             # Otherwise set the direction to abPerp
             else:
-                #print 'False in line'
                 direction = abPerp
-    
+    assert isinstance(direction, vectors.Vector), 'Direction must be a vector'
     return False, direction
 
 def pointOfCollision(simplex):
@@ -265,6 +229,7 @@ def pointOfCollision(simplex):
         This is calculated as the mean value of the points in the shapes that
         are closest to eachother. This is a pretty rough approximation, but
         could be sufficient for our needs. '''
+    assert isinstance(simplex, simplices.Simplex), 'Input must be a Simplex'
     assert len(simplex.get_points()) == 4, 'Terminated without full simplex'
 
     # Get the points
@@ -319,12 +284,13 @@ def pointOfCollision(simplex):
                 points = simplex.get_all(4)
                 #collisionPoint = (points[1]+points[2])*0.5
                 collisionPoint = points[1]
-
+    assert isinstance(collisionPoint, vectors.Vector), 'CollisionPoint must be a vector'
     return collisionPoint
 
 def pointOfCollision_2(simplex):
     ''' Another approach to calculating the collision point, using
         baryocentric coordinates. '''
+    assert isinstance(simplex, simplices.Simplex), 'Input must be a Simplex object'
     assert len(simplex.get_points()) == 4, 'Terminated without full simplex'
     #points in the minkowski simplex
     simpPoints = simplex.get_all_points(0)
@@ -335,25 +301,176 @@ def pointOfCollision_2(simplex):
 
     # create a matrix 
     matrix = [[1.0]*len(simpPoints)]
-    vectors = []
+    vecs = []
     for vector in simpPoints:
         value = vector.value
-        vectors.append(value)
-    for i in range(len(vectors[0])):
+        vecs.append(value)
+    for i in range(len(vecs[0])):
         outvec = []
-        for j in range(len(vectors)):
-            outvec.append(vectors[j][i])
+        for j in range(len(vecs)):
+            outvec.append(vecs[j][i])
         matrix.append(outvec)
             
 
     barCoord = gauss.solve(matrix, [1.0, 0.0, 0.0, 0.0])
     if barCoord:
-        collisionPoint = Vector()
+        collisionPoint = vectors.Vector()
 
         for i in range(len(aPoints)):
             collisionPoint += aPoints[i]*barCoord[i]
-        assert isinstance(collisionPoint, Vector), 'Invalid type for collisionPoint'
+        assert isinstance(collisionPoint, vectors.Vector), 'CollisionPoint must be a vector'
         return collisionPoint
     else:
         return pointOfCollision(simplex)
     
+def normal_and_depth(shape1, shape2, collisionPoint):
+    assert isinstance(shape1, shapes.Shape), 'Input must be a shape object'
+    assert isinstance(shape2, shapes.Shape), 'Input must be a shape object'
+    assert isinstance(collisionPoint, vectors.Vector), 'Input must be a vector'
+
+    name1 = shape1.__class__.__name__
+    name2 = shape2.__class__.__name__
+
+    # NOTE: Very specific, and a little redundant, but should be sufficient for our needs
+    # The bottom line is that the normals that we get from Surface objects are preferred,
+    # number two are the ones from Cube objects and last the ones from Sphere objects.
+    # (The ones from the sphere isn't very reliable, I've tested it in the physics engine
+    # and got very poor results)
+
+    if name1 == 'Surface':
+        penetrationNormal, penetrationDepth = \
+                           surface_normal_and_depth(shape1, shape2, collisionPoint)
+    elif name2 == 'Surface':
+        penetrationNormal, penetrationDepth = \
+                           surface_normal_and_depth(shape2, shape1, collisionPoint)
+
+    elif name1 == 'Cube':
+        penetrationNormal, penetrationDepth = \
+                           cube_normal_and_depth(shape1, shape2, collisionPoint)
+    elif name2 == 'Cube':
+        penetrationNormal, penetrationDepth = \
+                           cube_normal_and_depth(shape2, shape1, collisionPoint)
+
+    elif name1 == 'Sphere':
+        penetrationNormal, penetrationDepth = \
+                           sphere_normal_and_depth(shape1, shape2, collisionPoint)
+    elif name2 == 'Sphere':
+        penetrationNormal, penetrationDepth = \
+                           sphere_normal_and_depth(shape2, shape1, collisionPoint)
+
+    else:
+        raise Exception('Unknown shape used in collision')
+
+    assert isinstance(penetrationNormal, vectors.Vector), \
+                   'penetrationNormal must be a vector'
+    assert isinstance(penetrationDepth, numbers.Number), \
+                   'penetrationDepth must be a number'
+    assert penetrationDepth >= 0, 'penetrationDepth must be at least 0'
+    return penetrationNormal, penetrationDepth
+        
+    
+def surface_normal_and_depth(shape1, shape2, collisionPoint):
+    assert isinstance(shape1, shapes.Surface), 'Shape1 must be a surface object'
+    assert isinstance(shape2, shapes.Shape), 'Input must be a shape object'
+    assert shape2.__class__.__name__ != 'Surface', \
+           'Surfaces can not be checked for collision with other surfaces'
+    name1 = shape1.__class__.__name__
+    name2 = shape2.__class__.__name__
+    
+    pos = shape2.get_pos()
+    points = shape1.get_points()
+    a = points[0]
+    b = points[1]
+    c = points[2]
+    if 0 <= (pos - b).dot(a-b) <= (a-b).dot(a-b) and \
+       0 <= (pos - b).dot(c-b) <= (c-b).dot(c-b):
+        # The other shape is above the surface
+        penetrationNormal = shape1.get_normal(collisionPoint)
+        if penetrationNormal.dot(pos) < 0:
+            # It's pointing the wrong way
+            penetrationNormal *= -1.0
+        # TODO: Make generic "get distance to edge"-function for all entities
+        
+    else:
+        # shape2 hit an edge of the surface; the normal doesn't matter
+        # so we choosde the one from shape2
+        penetrationNormal = shape2.get_normal(collisionPoint)
+
+    # TODO: Make generic "get distance to edge"-function for all entities
+    if name2 == 'Cube':
+        side = shape2.get_side()
+    elif name2 == 'Sphere':
+        side = shape2.get_radius()
+    else:                 
+        raise Exception('Unknown shape used in collision')
+    
+    penetrationDepth = side - (pos - collisionPoint).norm()
+
+    assert isinstance(penetrationNormal, vectors.Vector), \
+           'penetrationNormal must be a vector'
+    assert isinstance(penetrationDepth, numbers.Number), \
+           'penetrationDepth must be a number'
+    assert penetrationDepth >= 0, 'penetrationDepth must be at least 0'
+
+    return penetrationNormal, penetrationDepth
+            
+def cube_normal_and_depth(shape1, shape2, collisionPoint):
+    assert isinstance(shape1, shapes.Cube), 'Shape1 must be a cube object'
+    assert isinstance(shape2, shapes.Shape), 'Input must be a shape object'
+
+    name1 = shape1.__class__.__name__
+    name2 = shape2.__class__.__name__
+
+    dist = shape1.get_pos() - shape2.get_pos()
+    halfside = shape1.get_side()/2.0
+
+    xdot = abs(dist.dot(Vector([1.0, 0.0, 0.0])))
+    ydot = abs(dist.dot(Vector([0.0, 1.0, 0.0])))
+    zdot = abs(dist.dot(Vector([0.0, 0.0, 1.0])))
+
+    if xdot <= halfside and ydot <= halfside or \
+       xdot <= halfside and zdot <= halfside or \
+       ydot <= halfside and zdot <= halfside:
+        # The other shape is in front of one of the faces of the cube
+        penetrationNormal = shape1.get_normal(collisionPoint)
+
+        penetrationDepth = self.get_side() - (self.get_pos() - collisionPoint).norm()
+    else:
+        # The other shape hit an edge of the cube; the normal doesn't matter
+        # so we choose the one from shape2
+        penetrationNormal = shape2.get_normal(collisionPoint)
+        
+        if name2 == 'Cube':
+            side = shape2.get_side()
+        elif name2 == 'Sphere':
+            side = shape2.get_radius()
+        else:                 
+            raise Exception('Unknown shape used in collision')
+        
+        penetrationDepth = side - (pos - collisionPoint).norm()
+
+    assert isinstance(penetrationNormal, vectors.Vector), \
+           'penetrationNormal must be a vector'
+    assert isinstance(penetrationDepth, numbers.Number), \
+           'penetrationDepth must be a number'
+    assert penetrationDepth >= 0, 'penetrationDepth must be at least 0'
+
+    return penetrationNormal, penetrationDepth
+        
+
+def sphere_normal_and_depth(shape1, shape2, collisionPoint):
+    assert isinstance(shape1, shapes.Sphere), 'Shape1 must be a sphere object'
+    assert isinstance(shape2, shapes.Shape), 'Input must be a shape object'
+
+    penetrationNormal = shape1.get_normal(collisionPoint)
+    penetrationDepth = (penetrationNormal*shape1.get_radius() \
+                                   - (collisionPoint - shape1.get_pos())).norm()
+
+    assert isinstance(penetrationNormal, vectors.Vector), \
+           'penetrationNormal must be a vector'
+    assert isinstance(penetrationDepth, numbers.Number), \
+           'penetrationDepth must be a number'
+    assert penetrationDepth >= 0, 'penetrationDepth must be at least 0'
+
+    return penetrationNormal, penetrationDepth
+

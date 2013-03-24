@@ -9,7 +9,7 @@ from shapesGJK import *
 from GJK import *
 import support
 from draw import *
-from renderer import *
+from render import *
 from physics import *
 
 
@@ -26,9 +26,23 @@ gluPerspective(45.0, 640.0/480.0, 0.1, 100.0)
 glMatrixMode(GL_MODELVIEW)
 glLoadIdentity()
 
+class Game():
+    ''' A class containing all the objects in the game '''
+    def __init__(self, player, objectList, sceneList):
+        self._player = player
+        self._objectList = objectList
+        self._sceneList = sceneList
+
+    def get_objects(self):
+        return self._player, self._objectList, self._sceneList
+
+PLANE_POINTS = [[-10.0, 0.0, -10.0], [10.0, 0.0, -10.0],
+                [10.0, 0.0, 10.0], [-10.0, 0.0, 10.0]]
+
+
 speed = 0.1
 xPos = 2.0
-yPos = 0.0
+yPos = 5.0
 zPos = 0.0
 pos = [xPos, yPos, zPos]
 
@@ -61,26 +75,31 @@ sphere = Shape(Vector(), pos, support.sphere, [0.2, 1.0, 0.8])
 #icosahedron = Shape(icoOutVec, pos, support.polyhedron)
 #plane = Shape(planeOutVec, pos, support.polyhedron)
 
-otherCube = Shape(cubeOutVec, otherPos, support.polyhedron, GREEN)
+#otherCube = Shape(cubeOutVec, otherPos, support.polyhedron, GREEN)
 #plane = Shape(planeOutVec, otherPos, support.polyhedron)
+plane = Shape(planeOutVec, Vector(), support.polyhedron, [0.5, 0.0, 1.0])
 
 
 #mainCube.update_points(pos)
 #icosahedron.update_points(pos)
 #plane.update_points(pos)
 
-otherCube.update_points(otherPos)
+#otherCube.update_points(otherPos)
 #plane.update_points(otherPos)
 
-objectList = [otherCube]
-sceneList = []
+#objectList = [otherCube]
+#sceneList = []
+
+objectList = []
+sceneList = [plane]
+
+game = Game(sphere, objectList, sceneList)
 
 glTranslatef(0.0, 0.0, -10.0)                #move back
 glRotatef(25.0, 1.0, 0.0, 0.0) 
 
 run = True
 
-lastDirection = Vector()
 
 while run:
 
@@ -99,17 +118,8 @@ while run:
 
     direction = Vector([xDir, yDir, zDir])
 
-    if not direction.isZero():
+    if not direction.is_zero():
         direction = direction.normalize()
-
-    velChange = lastDirection*(sphere.get_velocity() - lastDirection*speed).dot(lastDirection)
-
-    if direction != lastDirection:
-        sphere.add_velocity((direction - lastDirection )* speed - velChange)
-        lastDirection = direction
-
-    
-
 
     #mainCube.update_pos(movement)
     #mainCube.update_points(movement)
@@ -119,48 +129,44 @@ while run:
     #plane.update_points(movement)
     #sphere.update_pos(movement)
 
-    collided, collisionPoint, penetrationNormal, penetrationDepth = GJK(sphere, otherCube)
+    #collided, collisionInfo = GJK(sphere, otherCube)
+    collided, collisionInfo = GJK(sphere, plane)
+    collisionPoint, penetrationNormal, penetrationDepth = collisionInfo
     #collided, collisionPoint = GJK(mainCube, otherCube)
     #collided, collisionPoint = GJK(plane, otherCube)
 
     #collided, collisionPoint = GJK(sphere, plane)
     #collided, collisionPoint = GJK(mainCube, plane)
 
-    if collided:
-        collision_response(sphere, otherCube, collisionPoint, penetrationNormal, penetrationDepth)
+    
 
-    sphere.update_pos(sphere.get_velocity())
-    otherCube.update_pos(otherCube.get_velocity())
-    otherCube.update_points(otherCube.get_velocity())
+    sphere.update_pos(direction*speed)
 
-    if collided:
-        #currentColor = RED
-        otherCube.set_color(RED)
-    else:
-        #currentColor = GREEN
-        otherCube.set_color(GREEN)
+##    if collided:
+##        #currentColor = RED
+##        otherCube.set_color(RED)
+##    else:
+##        #currentColor = GREEN
+##        otherCube.set_color(GREEN)
 
     #pos = mainCube.get_pos().get_value()
     #pos = icosahedron.get_pos().get_value()
     #pos = plane.get_pos().get_value()
 ##    pos = sphere.get_pos().get_value()
-##    if collisionPoint:
-##        colPos = collisionPoint.get_value()
-##        #point1pos = point1.get_value()
-##        #point2pos = point2.get_value()
 
-    render(sphere, objectList, sceneList)
+    render(game, collisionInfo)
 
 
 ##    if collisionPoint:
+##        colPos = collisionPoint.value
 ##        glPushMatrix()
 ##        glTranslatef(colPos[0], colPos[1], colPos[2])
 ##        drawCross([1.0, 1.0, 1.0])
 ##        glPopMatrix()
-##        drawVector(penetrationNormal.get_value())
+##        drawVector(penetrationNormal.value)
 
-    pygame.display.flip()
-    pygame.time.wait(10)
+    #pygame.display.flip()
+    #pygame.time.wait(10)
 
 
 pygame.quit()

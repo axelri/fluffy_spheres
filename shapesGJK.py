@@ -4,13 +4,13 @@ from vector import *
 
 class Shape:
 
-    def __init__(self, points, position, support_func, color):
+    def __init__(self, points, position, support_func, color, mass = 1):
 
         # Linear motion
         self._pos = position
         self._velocity = Vector()
         self._acceleration = Vector()
-        self._mass = 1
+        self._mass = mass
         self._force = Vector()
 
         # Angular motion
