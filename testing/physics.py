@@ -5,10 +5,9 @@ import numbers
 import games
 
 GRAVITY = vectors.Vector([0.0, -10.0, 0.0])
-dt = 0.00015
+dt = 0.0005
 
 def collision_response(shape1, shape2, collisionInfo):
-    print 'Entered collision_response'
     assert isinstance(shape1, shapes.Shape), 'Input must be a Shape object'
     assert isinstance(shape2, shapes.Shape), 'Input must be a Shape object'
     assert isinstance(collisionInfo, tuple), 'Input must be a tuple'
@@ -29,14 +28,9 @@ def collision_response(shape1, shape2, collisionInfo):
 
     mass1 = shape1.get_mass()
     mass2 = shape2.get_mass()
-    if mass1 > 1000:        # It is immobile
-        invMass1 = 0
-    else:
-        invMass1 = 1 / mass1
-    if mass2 > 1000:        # It is immobile
-        invMass2 = 0
-    else:
-        invMass2 = 1 / mass2
+
+    invMass1 = 1.0/shape1.get_mass()
+    invMass2 = 1.0/shape2.get_mass()
 
     relativeVel = shape1.get_velocity() - shape2.get_velocity()
 
@@ -44,20 +38,18 @@ def collision_response(shape1, shape2, collisionInfo):
         # They are moving apart, no need to apply an impulse
         return
     
-    e = 0.1     # coefficient of elasticity
+    e = 0.0     # coefficient of elasticity
 
     v_ab = relativeVel
     n = penetrationNormal   
 
     impulse = -(1+e)*v_ab.dot(n)/((invMass1+invMass2)*n.dot(n))
 
-    print 'Impulse:', impulse
-
-    
-
+    #print 'impulse before:', impulse
     # Hack to prevent sinking
-    impulse -= penetrationDepth*1.5
-
+    impulse -= penetrationDepth*1.0
+    #print 'depth:', penetrationDepth
+    #print 'impulse after:', impulse
     shape1.add_velocity(n*impulse*invMass1)
     shape2.add_velocity(n*impulse*invMass2*(-1.0))
 
@@ -67,35 +59,38 @@ def update_physics(game):
         the game, calculates collisions etc and moves them to their
         new locations.'''
     assert isinstance(game, games.Game), 'Input must be a game object'
-    # TODO: make it have an input called dt, which gives it the
+    # TODO: Make it have an input called dt, which gives it the
     # timestep it should simulate
 
     player, objectList, sceneList = game.get_objects()
-
+    #print ''
     for item in objectList:
+        #print 'Checking collision with item:', item
 
         collided, collisionInfo = collisions.GJK(player, item)
 
         if collided:
+            #print 'Player collided with item'
             collision_response(player, item, collisionInfo)
+
+        for thing in sceneList:
+            collided, collisionInfo = collisions.GJK(item, thing)
+
+            if collided:
+                #print 'Item collided with scene'
+                collision_response(item, thing, collisionInfo)
 
     for item in sceneList:
+        #print 'Checking collision with scene:', item
 
         collided, collisionInfo = collisions.GJK(player, item)
 
         if collided:
-            point, normal, depth = collisionInfo
-            print 'Collision information:'
-            print '\tCollision point:', point.value
-            print '\tCollision normal:', normal.value
-            print '\tCollision depth:', depth
-            print '\tPlayer position:', player.get_pos().value
-            print ''
+            #print 'Player collided with scene'
             collision_response(player, item, collisionInfo)
-
-
+    
     # TODO: switch to semi-implicit Euler integration
-
+    
     player.add_velocity(GRAVITY*dt)
     player.add_pos(player.get_velocity())
 

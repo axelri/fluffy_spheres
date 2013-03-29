@@ -57,4 +57,5 @@ def cube(cube, direction):
     else:
         out += vectors.Vector([0.0, 0.0, side*-0.5])
 
+    print 'Support point:', out.value
     return out

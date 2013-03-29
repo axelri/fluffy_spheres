@@ -50,21 +50,23 @@ for i in range(len(planePoints)):
     out = planePoints[i]
     planeOutVec[i] = vectors.Vector(out)
 
-sphere = shapes.Sphere(pos = pos)
+sphere = shapes.Sphere(pos = pos, radius = 1)
 
-#cube = shapes.Cube(pos = otherPos)
+cube = shapes.Cube(pos = otherPos)
 
 plane = shapes.Surface(points = planeOutVec)
 
+player = sphere
+#player = cube
 
-#objectList = [cube]
+objectList = [cube]
 #sceneList = []
 
-objectList = []
+#objectList = []
 sceneList = [plane]
 
 
-game = games.Game(sphere, objectList, sceneList)
+game = games.Game(player, objectList, sceneList)
 
 run = True
 lastDirection = vectors.Vector()
@@ -89,15 +91,16 @@ while run:
     if not direction.is_zero():
         direction = direction.normalize()
 
-    velChange = (sphere.get_velocity() - lastDirection*speed)\
+    velChange = (player.get_velocity() - lastDirection*speed)\
                 .projected(vectors.Vector([1.0, 0.0, 0.0]), vectors.Vector([0.0, 0.0, 1.0]))
 
     if direction != lastDirection:
-        sphere.add_velocity((direction - lastDirection )* speed - velChange)
+        player.add_velocity((direction - lastDirection )* speed - velChange)
         lastDirection = direction
 
 
     physics.update_physics(game)
     render.render(game)
+    #print 'Pos:', player.get_pos().value
 
 pygame.quit()

@@ -400,11 +400,11 @@ def surface_normal_and_depth(shape1, shape2, collisionPoint):
     if name2 == 'Cube':
         side = shape2.get_side()
     elif name2 == 'Sphere':
-        side = shape2.get_radius()
+        side = shape2.get_radius()*2.0
     else:                 
         raise Exception('Unknown shape used in collision')
     
-    penetrationDepth = side - (pos - collisionPoint).norm()
+    penetrationDepth = side/2.0 - (pos - collisionPoint).projected(penetrationNormal).norm()
 
     assert isinstance(penetrationNormal, vectors.Vector), \
            'penetrationNormal must be a vector'
@@ -424,9 +424,9 @@ def cube_normal_and_depth(shape1, shape2, collisionPoint):
     dist = shape1.get_pos() - shape2.get_pos()
     halfside = shape1.get_side()/2.0
 
-    xdot = abs(dist.dot(Vector([1.0, 0.0, 0.0])))
-    ydot = abs(dist.dot(Vector([0.0, 1.0, 0.0])))
-    zdot = abs(dist.dot(Vector([0.0, 0.0, 1.0])))
+    xdot = abs(dist.dot(vectors.Vector([1.0, 0.0, 0.0])))
+    ydot = abs(dist.dot(vectors.Vector([0.0, 1.0, 0.0])))
+    zdot = abs(dist.dot(vectors.Vector([0.0, 0.0, 1.0])))
 
     if xdot <= halfside and ydot <= halfside or \
        xdot <= halfside and zdot <= halfside or \
@@ -434,7 +434,8 @@ def cube_normal_and_depth(shape1, shape2, collisionPoint):
         # The other shape is in front of one of the faces of the cube
         penetrationNormal = shape1.get_normal(collisionPoint)
 
-        penetrationDepth = self.get_side() - (self.get_pos() - collisionPoint).norm()
+        penetrationDepth = shape1.get_side()/2.0 - \
+                           (shape1.get_pos() - collisionPoint).projected(penetrationNormal).norm()
     else:
         # The other shape hit an edge of the cube; the normal doesn't matter
         # so we choose the one from shape2
@@ -443,11 +444,11 @@ def cube_normal_and_depth(shape1, shape2, collisionPoint):
         if name2 == 'Cube':
             side = shape2.get_side()
         elif name2 == 'Sphere':
-            side = shape2.get_radius()
+            side = shape2.get_radius()*2
         else:                 
             raise Exception('Unknown shape used in collision')
         
-        penetrationDepth = side - (pos - collisionPoint).norm()
+        penetrationDepth = side/2.0 - (shape2.get_pos() - collisionPoint).projected(penetrationNormal).norm()
 
     assert isinstance(penetrationNormal, vectors.Vector), \
            'penetrationNormal must be a vector'

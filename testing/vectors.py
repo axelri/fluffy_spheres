@@ -115,7 +115,7 @@ class Vector:
             for v in base:
                 assert isinstance(v, Vector), 'Input must be a vector.'
                 assert self.dim() == v.dim(), 'Vectors must be of the same dimension'
-                assert v.is_not_zero, "Input can't be the the zero vector"
+                assert v.is_not_zero(), "Input can't be the the zero vector"
 
         proj = Vector([0] * self.dim())
         for v in base:

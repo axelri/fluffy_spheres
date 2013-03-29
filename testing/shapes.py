@@ -11,7 +11,7 @@ class Shape(object):
         # Linear motion
         self._pos = vectors.Vector()
         self._velocity = vectors.Vector()
-        self._mass = 10000      # Makes it "immobile"
+        self._mass = float('inf')      # Makes it "immobile"
         self._force = vectors.Vector()
 
         # Angular motion
@@ -119,13 +119,13 @@ class Sphere(Shape):
 class Cube(Shape):
 
     def __init__(self, pos = vectors.Vector(), side = 1,
-                 mass = 1, color = [0.5, 0.5, 0.5]):
+                 mass = 1, color = [0.8, 0.8, 0.8]):
         super(Cube, self).__init__()
         assert isinstance(pos, vectors.Vector), 'Pos must be a vector'
         assert isinstance(mass, numbers.Number), 'Mass must be a number'
         assert mass >= 0, 'Mass must be at least 0'
         assert isinstance(side, numbers.Number), 'Side must be a number'
-        assert side >= 0, 'Side must be at least 0'
+        assert side > 0, 'Side must be greater than 0'
         assert isinstance(color, list), 'Color must be a list'
         # NOTE: If we use alpha values this should be 4
         assert len(color) == 3, 'Color must be of length 3'
@@ -142,10 +142,18 @@ class Cube(Shape):
         self._color = color
 
     def support_func(self, direction):
-        return supports.cube(self, direction)
+        #return supports.cube(self, direction)
+        return supports.polyhedron(self, direction)
 
     def get_side(self):
         return self._side
+
+    def get_points(self):
+        h = self._side/2.0
+        return [vectors.Vector([h, -h, -h]),  vectors.Vector([h, h, -h]),
+                vectors.Vector([-h, h, -h]),  vectors.Vector([-h, -h, -h]),
+                vectors.Vector([h, -h, h]),   vectors.Vector([h, h, h]),
+                vectors.Vector([-h, -h, h]),  vectors.Vector([-h, h, h])]
 
     def get_normal(self, point):
         ''' Returns the normal of the cube in th given point. Assumes the point

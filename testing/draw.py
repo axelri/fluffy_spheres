@@ -10,11 +10,10 @@ CUBE_QUAD_VERTS = ((0, 1, 2, 3), (3, 2, 7, 6), (6, 7, 5, 4),
 CUBE_EDGES = ((0,1), (0,3), (0,4), (2,1), (2,3), (2,7),
               (6,3), (6,4), (6,7), (5,1), (5,4), (5,7))
 
-
 def cube_points(size):
     assert isinstance(size, numbers.Number), 'Input must be a number'
     assert size > 0, 'Input must be a positive number'
-    h = size/2
+    h = size/2.0
     return [[h, -h, -h],  [h, h, -h],
             [-h, h, -h],  [-h, -h, -h],
             [h, -h, h],   [h, h, h],
@@ -25,12 +24,12 @@ def cube(cube):
     assert isinstance(cube, shapes.Cube), 'Input must be a cube object'
     points = cube_points(cube.get_side())
 
+
     glColor3fv(cube.get_color())
     glBegin(GL_QUADS)
     for face in CUBE_QUAD_VERTS:
         for vert in face:     
-            pos = points[vert]
-            glVertex3fv(pos)
+            glVertex3fv(points[vert])
     glEnd()
 
     # TODO: Use something like "cube.get_line_color()" instead?
@@ -38,8 +37,7 @@ def cube(cube):
     glBegin(GL_LINES)
     for line in CUBE_EDGES:
         for vert in line:
-            pos = points[vert]
-            glVertex3fv(pos)
+            glVertex3fv(points[vert])
     glEnd()
 
 def plane(plane):
