@@ -35,6 +35,17 @@ class Shape(object):
         assert isinstance(velocity, vectors.Vector), 'Velocity must be a vector'
         self._velocity += velocity
 
+    def get_angular_velocity(self):
+        return self._angularVelocity
+
+    def set_angular_velocity(self, velocity):
+        assert isinstance(velocity, vectors.Vector), 'Velocity must be a vector'
+        self._angularVelocity = velocity
+
+    def add_angular_velocity(self, velocity):
+        assert isinstance(velocity, vectors.Vector), 'Velocity must be a vector'
+        self._angularVelocity += velocity
+
     def get_mass(self):
         return self._mass
 
@@ -42,6 +53,9 @@ class Shape(object):
         assert isinstance(mass, numbers.Number), 'Mass must be a number'
         assert mass >= 0, 'Mass must be at least 0'
         self._mass = mass
+
+    def get_invInertia(self):
+        return self._invInertia
 
     def get_pos(self):
         return self._pos

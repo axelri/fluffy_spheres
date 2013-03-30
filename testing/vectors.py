@@ -142,6 +142,26 @@ class Vector:
         out = term1 + term2
         return out
 
+    def left_matrix_mult(self, matrix):
+        ''' Calculates the vector multiplied with the matrix to the left.
+            (matrix * vector) The matrix should be represented as a list of lists'''
+        assert isinstance(matrix, list), \
+               'Input must be a matrix, represented as a list of lists'
+        if __debug__:
+            for item in matrix:
+                assert isinstance(item, list), \
+                       'Input must be a matrix, represented as a list of lists'
+                assert len(item) == self.dim(), 'The dimensions must be the same'
+                for elem in item:
+                    assert isinstance(elem, numbers.Number), \
+                           'All elements in the matrix must be numbers'
+
+        out = [0]*self.dim()
+        for i in range(self.dim()):
+            out[i] = Vector(matrix[i]).dot(self)
+
+        return Vector(out)   
+
     def __str__(self):
         ''' Returns the string representation of the vector.'''
         return self.value.__str__()
