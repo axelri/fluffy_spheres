@@ -433,13 +433,26 @@ def cube_normal_and_depth(shape1, shape2, collisionPoint):
        ydot <= halfside and zdot <= halfside:
         # The other shape is in front of one of the faces of the cube
         penetrationNormal = shape1.get_normal(collisionPoint)
+        #print 'Normal (on cube side):', penetrationNormal.value
 
         penetrationDepth = shape1.get_side()/2.0 - \
                            (shape1.get_pos() - collisionPoint).projected(penetrationNormal).norm()
+        # Hack to avoid small negative penetration depths due to rounding errors
+        if penetrationDepth < 0.0:
+            if abs(penetrationDepth) < 0.00001:
+                penetrationDepth = 0.0
+            else:
+                raise Exception('Negative penetration depth')
+        #print 'Other info:'
+        #print '\tSide/2:', shape1.get_side()/2.0
+        #print '\tPosition:', shape1.get_pos().value
+        #print '\tCollisionPoint:', collisionPoint.value
+        #print '\tPenetrationDepth:', penetrationDepth
     else:
         # The other shape hit an edge of the cube; the normal doesn't matter
         # so we choose the one from shape2
         penetrationNormal = shape2.get_normal(collisionPoint)
+        #print 'Normal (on cube edge):', penetrationNormal.value
         
         if name2 == 'Cube':
             side = shape2.get_side()
@@ -449,6 +462,19 @@ def cube_normal_and_depth(shape1, shape2, collisionPoint):
             raise Exception('Unknown shape used in collision')
         
         penetrationDepth = side/2.0 - (shape2.get_pos() - collisionPoint).projected(penetrationNormal).norm()
+
+        # Hack to avoid small negative penetration depths due to rounding errors
+        if penetrationDepth < 0.0:
+            if abs(penetrationDepth) < 0.00001:
+                penetrationDepth = 0.0
+            else:
+                raise Exception('Negative penetration depth')
+
+        #print 'Other info:'
+        #print '\tSide/2:', side/2.0
+        #print '\tPosition:', shape2.get_pos().value
+        #print '\tCollisionPoint:', collisionPoint.value
+        #print '\tPenetrationDepth:', penetrationDepth
 
     assert isinstance(penetrationNormal, vectors.Vector), \
            'penetrationNormal must be a vector'

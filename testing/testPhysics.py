@@ -50,7 +50,7 @@ for i in range(len(planePoints)):
     out = planePoints[i]
     planeOutVec[i] = vectors.Vector(out)
 
-sphere = shapes.Sphere(pos = pos, radius = 1)
+sphere = shapes.Sphere(pos = pos, radius = 0.5)
 
 cube = shapes.Cube(pos = otherPos)
 
